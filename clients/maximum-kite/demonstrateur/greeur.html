@@ -47,6 +47,10 @@ label{font-size:13px;font-weight:600;color:var(--soft);display:block;margin-bott
 .stat{border-radius:14px;padding:12px 14px;background:var(--bg)}
 .stat b{display:block;font-size:34px;font-stretch:80%;line-height:1}
 .stat span{font-size:13px;color:var(--soft)}
+.todo{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:15px}
+.todo li button{min-height:36px;padding:0 12px;font-size:13px}
+.todo .why{display:block}
 .bubble{background:light-dark(#e7f3ef,#183a35);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:15px;white-space:pre-line}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
 .s-OK{background:light-dark(#dcf2e6,#173b2a);color:var(--ok)}
@@ -90,7 +94,7 @@ pre,.scroll{overflow-x:auto}
 </div>
 <button id="reset" style="border-color:#9fcfd4;color:#eef7f7">Revenir aux données de démo</button>
 </div>
-<p class="lead">Un moniteur dit en une phrase ce qui est arrivé au matos. Le Gréeur l'inscrit dans le fichier, recalcule l'état du parc et prévient si une pièce doit sortir de l'eau.</p>
+<p class="lead">Tout le matos de l'école sur une seule page. Un moniteur dit en une phrase ce qui est arrivé, le Gréeur l'inscrit dans le fichier, recalcule l'état du parc et met à jour ce qu'il y a à traiter.</p>
 
 <div class="hero">
 <section class="panel" aria-labelledby="t-sig">
@@ -109,13 +113,13 @@ pre,.scroll{overflow-x:auto}
 </section>
 
 <section class="panel" aria-labelledby="t-etat">
-<h2 id="t-etat">État du parc aujourd'hui</h2>
+<div class="row" style="justify-content:space-between"><h2 id="t-etat">À traiter aujourd'hui</h2><span class="pill s-OK" id="src">Données de démo</span></div>
 <div class="stats" id="stats"></div>
-<label>Brief WhatsApp du matin</label>
-<div class="bubble" id="brief"></div>
+<ul class="todo" id="todo"></ul>
+<p class="note" id="n8n-brief" style="margin:12px 0 0"></p>
 </section>
 </div>
-<p class="note" style="margin-top:16px">Données fictives : matos, prix, dates et réparations sont inventés pour la démo.</p>
+<p class="note" style="margin-top:16px" id="fict">Données fictives : matos, prix, dates et réparations sont inventés pour la démo.</p>
 </div>
 </header>
 
@@ -169,6 +173,14 @@ pre,.scroll{overflow-x:auto}
 <label class="row" style="margin:0"><span class="hide">Charger</span><input type="file" id="up" accept=".xlsx,.xls,.csv" style="max-width:320px"></label>
 </div>
 <p class="note" id="xls-state">Charge un fichier au même format pour voir l'agent tourner sur d'autres données.</p>
+<h3 style="margin-top:28px">Brancher la Google Sheet</h3>
+<p>La page lit et écrit directement dans la Google Sheet de l'école (onglets Parc, Dégâts, Brief), avec ton connecteur Google Sheets. n8n travaille sur la même feuille : ce qu'il ajoute apparaît ici.</p>
+<div id="sheet-box">
+<label for="sheet-id">ID de la Google Sheet</label>
+<input id="sheet-id" autocomplete="off" spellcheck="false">
+<div class="row" style="margin-top:10px"><button class="main" id="sheet-load">Charger la Google Sheet</button><button id="sheet-refresh" class="hide">Recharger</button></div>
+</div>
+<p class="note" id="sheet-state"></p>
 </section>
 </div>
 </main>
@@ -176,7 +188,7 @@ pre,.scroll{overflow-x:auto}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <script>
 {
-const DEMO = {"_note": "Données FICTIVES pour la démo Maximum Kite. Aucune donnée réelle de l'école. Prix et dates inventés, plausibles mais non vérifiés.", "hypotheses": {"duree_vie_ans": {"Aile kite": 3, "Aile wing": 3, "Planche twintip": 4, "Planche wingfoil": 5, "Foil": 5, "Harnais": 2, "Barre": 3}, "seuil_reparations_pct": 50, "surveiller_age_pct": 80, "surveiller_reparations_pct": 30, "surveiller_nb_degats_6_mois": 2, "revente_pct": 20}, "parc": [{"id": "K-01", "categorie": "Aile kite", "designation": "Aile kite 7 m", "date_achat": "2024-03-10", "prix_achat": 1400}, {"id": "K-02", "categorie": "Aile kite", "designation": "Aile kite 9 m", "date_achat": "2023-12-01", "prix_achat": 1500}, {"id": "K-03", "categorie": "Aile kite", "designation": "Aile kite 9 m", "date_achat": "2024-10-20", "prix_achat": 1550}, {"id": "K-04", "categorie": "Aile kite", "designation": "Aile kite 12 m", "date_achat": "2022-12-10", "prix_achat": 1700}, {"id": "K-05", "categorie": "Aile kite", "designation": "Aile kite 12 m", "date_achat": "2025-01-15", "prix_achat": 1800}, {"id": "W-01", "categorie": "Aile wing", "designation": "Aile wing 4 m", "date_achat": "2024-02-01", "prix_achat": 850}, {"id": "W-02", "categorie": "Aile wing", "designation": "Aile wing 5 m", "date_achat": "2024-02-01", "prix_achat": 900}, {"id": "W-03", "categorie": "Aile wing", "designation": "Aile wing 5 m", "date_achat": "2025-06-10", "prix_achat": 950}, {"id": "W-04", "categorie": "Aile wing", "designation": "Aile wing 6 m", "date_achat": "2023-12-20", "prix_achat": 950}, {"id": "B-01", "categorie": "Planche twintip", "designation": "Twintip 138 cm", "date_achat": "2022-11-01", "prix_achat": 550}, {"id": "B-02", "categorie": "Planche twintip", "designation": "Twintip 141 cm", "date_achat": "2024-11-05", "prix_achat": 600}, {"id": "B-03", "categorie": "Planche wingfoil", "designation": "Planche wingfoil 110 L", "date_achat": "2023-01-20", "prix_achat": 1200}, {"id": "B-04", "categorie": "Planche wingfoil", "designation": "Planche wingfoil 140 L", "date_achat": "2024-12-01", "prix_achat": 1300}, {"id": "F-01", "categorie": "Foil", "designation": "Foil 1800 cm²", "date_achat": "2023-01-20", "prix_achat": 1250}, {"id": "F-02", "categorie": "Foil", "designation": "Foil 2000 cm²", "date_achat": "2025-03-01", "prix_achat": 1350}, {"id": "H-01", "categorie": "Harnais", "designation": "Harnais taille M", "date_achat": "2025-04-10", "prix_achat": 230}, {"id": "H-02", "categorie": "Harnais", "designation": "Harnais taille L", "date_achat": "2023-10-05", "prix_achat": 230}, {"id": "BA-01", "categorie": "Barre", "designation": "Barre 22 m", "date_achat": "2024-03-10", "prix_achat": 520}], "types_degat": ["Déchirure toile", "Boudin percé", "Bride / ligne", "Choc planche / délaminage", "Foil (mât, fuselage, ailes)", "Harnais (sangle, boucle)", "Autre"], "degats": [{"date": "2025-02-10", "id": "K-02", "type": "Déchirure toile", "description": "Déchirure de 6 cm sur l'extrados", "gravite": "Moyenne", "cout": 120, "statut": "Réparé", "immobilise": false}, {"date": "2025-08-03", "id": "K-04", "type": "Boudin percé", "description": "Boudin d'attaque percé, valve à changer", "gravite": "Moyenne", "cout": 90, "statut": "Réparé", "immobilise": false}, {"date": "2025-11-20", "id": "W-04", "type": "Déchirure toile", "description": "Fenêtre fendue sur 4 cm", "gravite": "Légère", "cout": 60, "statut": "Réparé", "immobilise": false}, {"date": "2026-03-15", "id": "K-04", "type": "Déchirure toile", "description": "Déchirure de 15 cm au bord de fuite", "gravite": "Grave", "cout": 260, "statut": "Réparé", "immobilise": false}, {"date": "2026-04-08", "id": "K-01", "type": "Bride / ligne", "description": "Bride avant usée", "gravite": "Légère", "cout": 40, "statut": "Réparé", "immobilise": false}, {"date": "2026-05-12", "id": "B-03", "type": "Choc planche / délaminage", "description": "Choc sur le rail, début de délaminage", "gravite": "Moyenne", "cout": 150, "statut": "Réparé", "immobilise": false}, {"date": "2026-06-22", "id": "BA-01", "type": "Bride / ligne", "description": "Jeu de lignes usé, remplacé", "gravite": "Moyenne", "cout": 80, "statut": "Réparé", "immobilise": false}, {"date": "2026-07-30", "id": "F-01", "type": "Foil (mât, fuselage, ailes)", "description": "Vis du mât arrachée, filetage refait", "gravite": "Moyenne", "cout": 180, "statut": "Réparé", "immobilise": false}, {"date": "2026-09-02", "id": "K-04", "type": "Bride / ligne", "description": "Bride arrière cassée en session", "gravite": "Légère", "cout": 45, "statut": "Réparé", "immobilise": false}, {"date": "2026-10-28", "id": "W-04", "type": "Boudin percé", "description": "Boudin d'attaque percé après chute sur le récif", "gravite": "Moyenne", "cout": 110, "statut": "Chez le réparateur", "immobilise": true}]};
+const DEMO = {"_note": "Données FICTIVES pour la démo Maximum Kite. Aucune donnée réelle de l'école. Prix et dates inventés, plausibles mais non vérifiés.", "hypotheses": {"duree_vie_ans": {"Voile kite": 3, "Aile wing": 3, "Planche twintip": 4, "Planche wingfoil": 5, "Foil": 5, "Harnais": 2, "Barre": 3}, "seuil_reparations_pct": 50, "surveiller_age_pct": 80, "surveiller_reparations_pct": 30, "surveiller_nb_degats_6_mois": 2, "revente_pct": 20}, "parc": [{"id": "K-01", "categorie": "Voile kite", "designation": "Voile kite 7 m", "date_achat": "2024-03-10", "prix_achat": 1400}, {"id": "K-02", "categorie": "Voile kite", "designation": "Voile kite 9 m", "date_achat": "2023-12-01", "prix_achat": 1500}, {"id": "K-03", "categorie": "Voile kite", "designation": "Voile kite 9 m", "date_achat": "2024-10-20", "prix_achat": 1550}, {"id": "K-04", "categorie": "Voile kite", "designation": "Voile kite 12 m", "date_achat": "2022-12-10", "prix_achat": 1700}, {"id": "K-05", "categorie": "Voile kite", "designation": "Voile kite 12 m", "date_achat": "2025-01-15", "prix_achat": 1800}, {"id": "W-01", "categorie": "Aile wing", "designation": "Aile wing 4,5 m", "date_achat": "2024-02-01", "prix_achat": 850}, {"id": "W-02", "categorie": "Aile wing", "designation": "Aile wing 5 m", "date_achat": "2024-02-01", "prix_achat": 900}, {"id": "W-03", "categorie": "Aile wing", "designation": "Aile wing 5 m", "date_achat": "2025-06-10", "prix_achat": 950}, {"id": "W-04", "categorie": "Aile wing", "designation": "Aile wing 6 m", "date_achat": "2023-12-20", "prix_achat": 950}, {"id": "B-01", "categorie": "Planche twintip", "designation": "Twintip 141 cm", "date_achat": "2022-11-01", "prix_achat": 550}, {"id": "B-02", "categorie": "Planche twintip", "designation": "Twintip 145 cm", "date_achat": "2024-11-05", "prix_achat": 600}, {"id": "B-03", "categorie": "Planche wingfoil", "designation": "Planche wingfoil 140 L", "date_achat": "2023-01-20", "prix_achat": 1200}, {"id": "B-04", "categorie": "Planche wingfoil", "designation": "Planche wingfoil 170 L", "date_achat": "2024-12-01", "prix_achat": 1300}, {"id": "F-01", "categorie": "Foil", "designation": "Foil 1800 cm²", "date_achat": "2023-01-20", "prix_achat": 1250}, {"id": "F-02", "categorie": "Foil", "designation": "Foil 2000 cm²", "date_achat": "2025-03-01", "prix_achat": 1350}, {"id": "H-01", "categorie": "Harnais", "designation": "Harnais taille M", "date_achat": "2025-04-10", "prix_achat": 230}, {"id": "H-02", "categorie": "Harnais", "designation": "Harnais taille L", "date_achat": "2023-10-05", "prix_achat": 230}, {"id": "BA-01", "categorie": "Barre", "designation": "Barre 22 m", "date_achat": "2024-03-10", "prix_achat": 520}], "types_degat": ["Déchirure toile", "Boudin percé", "Bride / ligne", "Choc planche / délaminage", "Foil (mât, fuselage, ailes)", "Harnais (sangle, boucle)", "Autre"], "degats": [{"date": "2025-02-10", "id": "K-02", "type": "Déchirure toile", "description": "Déchirure de 6 cm sur l'extrados", "gravite": "Moyenne", "cout": 120, "statut": "Réparé", "immobilise": false}, {"date": "2025-08-03", "id": "K-04", "type": "Boudin percé", "description": "Boudin d'attaque percé, valve à changer", "gravite": "Moyenne", "cout": 90, "statut": "Réparé", "immobilise": false}, {"date": "2025-11-20", "id": "W-04", "type": "Déchirure toile", "description": "Fenêtre fendue sur 4 cm", "gravite": "Légère", "cout": 60, "statut": "Réparé", "immobilise": false}, {"date": "2026-03-15", "id": "K-04", "type": "Déchirure toile", "description": "Déchirure de 15 cm au bord de fuite", "gravite": "Grave", "cout": 260, "statut": "Réparé", "immobilise": false}, {"date": "2026-04-08", "id": "K-01", "type": "Bride / ligne", "description": "Bride avant usée", "gravite": "Légère", "cout": 40, "statut": "Réparé", "immobilise": false}, {"date": "2026-05-12", "id": "B-03", "type": "Choc planche / délaminage", "description": "Choc sur le rail, début de délaminage", "gravite": "Moyenne", "cout": 150, "statut": "Réparé", "immobilise": false}, {"date": "2026-06-22", "id": "BA-01", "type": "Bride / ligne", "description": "Jeu de lignes usé, remplacé", "gravite": "Moyenne", "cout": 80, "statut": "Réparé", "immobilise": false}, {"date": "2026-07-30", "id": "F-01", "type": "Foil (mât, fuselage, ailes)", "description": "Vis du mât arrachée, filetage refait", "gravite": "Moyenne", "cout": 180, "statut": "Réparé", "immobilise": false}, {"date": "2026-09-02", "id": "K-04", "type": "Bride / ligne", "description": "Bride arrière cassée en session", "gravite": "Légère", "cout": 45, "statut": "Réparé", "immobilise": false}, {"date": "2026-10-28", "id": "W-04", "type": "Boudin percé", "description": "Boudin d'attaque percé après chute sur le récif", "gravite": "Moyenne", "cout": 110, "statut": "Chez le réparateur", "immobilise": true}]};
 const clone = o => JSON.parse(JSON.stringify(o));
 let S = {hyp: clone(DEMO.hypotheses), parc: clone(DEMO.parc), degats: clone(DEMO.degats)};
 let undo = null, sample = null, downloads = null, lastAdded = null;
@@ -239,14 +251,14 @@ function render() {
   const A = all(), cnt = k => A.filter(x => x.st === k).length, B = budget(), tot = B.reduce((s, x) => s + x.net, 0);
   $('stats').innerHTML = [['OK', 'en état'], ['À surveiller', 'à surveiller'], ['À remplacer', 'à remplacer'], ['Immobilisé', 'immobilisé(s)']]
     .map(([k, l]) => `<div class="stat"><b>${cnt(k)}</b><span>${l}</span></div>`).join('');
-  const immo = A.filter(x => x.st === 'Immobilisé'), remp = A.filter(x => x.st === 'À remplacer'), surv = A.filter(x => x.st === 'À surveiller');
-  $('brief').textContent = [
-    `Bonjour ! ${A.length - immo.length} pièces sur ${A.length} peuvent sortir aujourd'hui.`,
-    immo.length ? `Ne pas sortir : ${immo.map(x => x.id + ' (' + x.designation + ')').join(', ')}.` : 'Rien d\'immobilisé.',
-    remp.length ? `À remplacer : ${remp.map(x => x.id).join(', ')}.` : '',
-    surv.length ? `À surveiller : ${surv.map(x => x.id).join(', ')}.` : '',
-    `Budget de renouvellement sur 12 mois : ${eur(tot)} net.`
-  ].filter(Boolean).join('\n');
+  const T = [];
+  A.filter(x => x.st === 'Immobilisé').forEach(x => T.push(['s-immo', 'Ne pas sortir', `${x.id} · ${x.designation}`, x.why.join(' · '), x.id]));
+  A.filter(x => x.st === 'À remplacer').forEach(x => T.push(['s-remp', 'À remplacer', `${x.id} · ${x.designation}`, x.why.join(' · '), x.id]));
+  S.degats.filter(d => d.statut !== 'Réparé' && !d.immobilise).forEach(d => T.push(['s-surv', 'À réparer', `${d.id} · ${d.type}`, d.description, d.id]));
+  const surv = A.filter(x => x.st === 'À surveiller');
+  if (surv.length) T.push(['s-surv', 'À surveiller', surv.map(x => x.id).join(', '), 'usure ou dégâts répétés : voir le parc', '']);
+  T.push(['s-OK', 'Budget', `${eur(tot)} sur 12 mois`, `${B.length} pièces à renouveler, revente déduite`, '#budget']);
+  $('todo').innerHTML = T.map(([c, l, t, w, go]) => `<li><span class="pill ${c}">${l}</span><span><b>${esc(t)}</b><span class="why">${esc(w)}</span></span>${go ? `<button data-go="${esc(go)}">Voir</button>` : '<span></span>'}</li>`).join('');
 
   $('tb-parc').innerHTML = A.map(x => `<tr${x.id === lastAdded ? ' class="flash"' : ''}><td><b>${esc(x.id)}</b></td><td>${esc(x.designation)}<div class="why">acheté le ${fr(D(x.date_achat) || TODAY)} · ${eur(x.prix_achat)}</div></td><td class="n">${x.age.toFixed(1).replace('.', ',')} an${x.age >= 2 ? 's' : ''}</td><td class="n">${eur(x.cumul)}<div class="why">${x.n} dégât${x.n > 1 ? 's' : ''}</div></td><td><span class="pill ${ST[x.st]}">${x.st}</span></td><td class="why">${esc(x.why.join(' · ') || 'rien à signaler')}</td></tr>`).join('');
 
@@ -281,6 +293,65 @@ $('hyp-form').addEventListener('input', e => {
   if (t.dataset.life) S.hyp.duree_vie_ans[t.dataset.life] = v; else if (t.dataset.h) S.hyp[t.dataset.h] = v;
   render();
 });
+
+/* --- Google Sheet (connecteur Google Sheets de la personne qui ouvre la page) --- */
+const GS = 'Google Sheets', SHEET_DEFAULT = '1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8';
+let mcp = null, src = 'demo', sheetId = SHEET_DEFAULT;
+try { sheetId = localStorage.getItem('greeur-sheet') || SHEET_DEFAULT; } catch {}
+$('sheet-id').value = sheetId;
+const SRC = {demo: ['Données de démo', 's-OK'], file: ['Fichier importé', 's-surv'], sheet: ['Google Sheet', 's-OK']};
+function setSrc(v) {
+  src = v; $('src').textContent = SRC[v][0]; $('src').className = 'pill ' + SRC[v][1];
+  $('fict').classList.toggle('hide', v === 'sheet'); $('sheet-refresh').classList.toggle('hide', v !== 'sheet');
+  if (v !== 'sheet') $('n8n-brief').textContent = '';
+}
+function gsErr(e) {
+  const c = e && e.code;
+  if (c === 'needs_reauth') return 'Ta connexion Google Sheets a expiré : reconnecte-la dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'server_not_connected' || c === 'selection_required') return 'Ajoute (ou choisis) le connecteur Google Sheets dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'not_in_manifest' || c === 'approval_required' || c === 'blocked_by_policy') return 'Cette page n\'a pas l\'autorisation d\'utiliser Google Sheets. Recharge la page et accepte la demande.';
+  if (c === 'tool_error') return 'Google Sheets a refusé : ' + String(e.message || '').slice(0, 160);
+  return 'Google Sheets ne répond pas pour l\'instant. Réessaie dans un moment.';
+}
+const gsGet = async range => {
+  const r = await mcp.callTool(GS, 'get_values', {spreadsheetId: sheetId, range}, {cache: false});
+  const p = r.payload || {};
+  return p.values || (p.content && p.content.values) || [];
+};
+const gsPut = (range, values) => mcp.callTool(GS, 'update_values', {spreadsheetId: sheetId, range, values}, {cache: false});
+const rowsToObjs = v => { const h = (v[0] || []).map(norm); return v.slice(1).map((r, i) => { const o = {_row: i + 2}; h.forEach((k, j) => { o[k] = r[j] ?? ''; }); return o; }); };
+const toIso = v => { const t = String(v || '').trim(), m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : t.slice(0, 10); };
+const toNum = v => parseFloat(String(v ?? '').replace(/[\s\u00a0\u202f€]/g, '').replace(',', '.'));
+async function loadSheet() {
+  const id = $('sheet-id').value.trim().replace(/^.*\/d\/([^/]+).*$/, '$1');
+  if (!id) { $('sheet-id').focus(); return; }
+  sheetId = id; try { localStorage.setItem('greeur-sheet', id); } catch {}
+  $('sheet-load').disabled = true; $('sheet-state').textContent = 'Lecture de la Google Sheet…';
+  try {
+    const P = rowsToObjs(await gsGet('Parc!A:E')), G = rowsToObjs(await gsGet("'Dégâts'!A:H"));
+    const parc = P.filter(x => x.id).map(x => ({id: String(x.id).trim(), categorie: String(x.categorie).trim(), designation: String(x.designation).trim(), date_achat: toIso(x.dateachat), prix_achat: toNum(x.prixachat) || 0}));
+    if (!parc.length) throw {code: 'tool_error', message: 'onglet Parc vide ou introuvable'};
+    S.parc = parc;
+    S.degats = G.filter(x => x.id).map(x => ({_row: x._row, date: toIso(x.date), id: String(x.id).trim(), type: x.type || 'Autre', description: x.description || '', gravite: x.gravite || 'Moyenne', cout: isNaN(toNum(x.cout)) ? null : toNum(x.cout), statut: x.statut || 'Réparé', immobilise: /^o/i.test(String(x.immobilise))}));
+    parc.forEach(x => { if (!(x.categorie in S.hyp.duree_vie_ans)) S.hyp.duree_vie_ans[x.categorie] = 3; });
+    undo = null; lastAdded = null; setSrc('sheet'); hypForm(); render();
+    $('sheet-state').textContent = `Chargé : ${parc.length} pièces, ${S.degats.length} dégâts. Les ajouts et réparations faits ici sont écrits dans la feuille.`;
+    try {
+      const Br = rowsToObjs(await gsGet('Brief!A:G')).filter(x => x.date), last = Br[Br.length - 1];
+      $('n8n-brief').textContent = last ? `Dernier passage de n8n (${toIso(last.date)}) : ${last.brief}` : 'n8n n\'a pas encore écrit de brief dans la feuille.';
+    } catch { $('n8n-brief').textContent = ''; }
+  } catch (e) { $('sheet-state').textContent = gsErr(e); }
+  finally { $('sheet-load').disabled = false; }
+}
+$('sheet-load').addEventListener('click', loadSheet);
+$('sheet-refresh').addEventListener('click', loadSheet);
+const degatRow = d => ["'" + d.date, d.id, d.type, d.description, d.gravite, d.cout ?? '', d.statut, d.immobilise ? 'oui' : 'non'];
+async function sync(range, values, ok) {
+  if (src !== 'sheet') return;
+  try { await gsPut(range, values); flash(ok); }
+  catch (e) { flash('Pas enregistré dans la Google Sheet. ' + gsErr(e) + ' Clique sur « Recharger » pour revoir l\'état réel de la feuille.'); }
+}
+function flash(msg) { const t = $('toast'); t.classList.remove('hide'); const p = document.createElement('div'); p.className = 'note'; p.style.marginTop = '6px'; p.textContent = msg; t.appendChild(p); }
 
 /* --- signalement --- */
 const EX = ['Le 12 m le plus vieux a une déchirure de 20 cm au bord d\'attaque, on le sort plus', 'La wing 5 m de 2025 : fenêtre un peu fendue, ça tient', 'Planche wingfoil 140 L, gros choc sur le nez, ça prend l\'eau', 'Le harnais M, la boucle a lâché pendant le cours'];
@@ -334,13 +405,17 @@ function showForm(j, head) {
 <label class="row" style="margin:12px 0;font-size:15px;color:var(--ink)"><input type="checkbox" id="f-immo" style="width:22px;height:22px"${j.immobiliser ? ' checked' : ''}> Ne pas sortir avant réparation</label>
 ${j.question ? `<p class="toast" style="margin:0 0 10px">Question à poser au moniteur : ${esc(j.question)}</p>` : ''}
 <p class="why" id="f-est"></p>
-<label>Alerte qui partirait sur WhatsApp</label><div class="bubble" id="f-alert"></div>
+<p class="bubble" id="f-effect" style="margin:0"></p>
 <div class="row" style="margin-top:12px"><button class="sail" id="f-add">Ajouter au fichier</button><button id="f-cancel">Annuler</button></div>`;
   $('result').classList.remove('hide'); $('toast').classList.add('hide');
   const upd = () => {
     const it = A.find(x => x.id === $('f-id').value), est = estimate($('f-type').value);
     $('f-est').textContent = 'Coût estimé : ' + est.txt + '.';
-    $('f-alert').textContent = it ? `${$('f-immo').checked ? 'Ne pas sortir' : 'À contrôler'} : ${it.id} (${it.designation}).\n${$('f-type').value}, gravité ${$('f-grav').value.toLowerCase()} : ${$('f-desc').value}\nRéparation ${est.med ? 'estimée à ' + eur(est.med) : 'à chiffrer'}.` : 'Choisis la pièce concernée.';
+    if (!it) { $('f-effect').textContent = 'Choisis la pièce concernée.'; return; }
+    const before = compute(it).st;
+    S.degats.push({date: iso(TODAY), id: it.id, type: $('f-type').value, gravite: $('f-grav').value, cout: null, statut: 'À réparer', immobilise: $('f-immo').checked});
+    const after = compute(it).st; S.degats.pop();
+    $('f-effect').textContent = `Effet sur le parc : ${it.id} (${it.designation}) ${before === after ? 'reste' : 'passe de ' + before + ' à'} ${after}. Il apparaîtra dans « À traiter ».`;
   };
   $('result').oninput = upd; $('result').onchange = upd; upd();
   $('f-cancel').onclick = () => $('result').classList.add('hide');
@@ -348,14 +423,17 @@ ${j.question ? `<p class="toast" style="margin:0 0 10px">Question à poser au mo
     const id = $('f-id').value; if (!id) { $('f-id').focus(); return; }
     const before = compute(S.parc.find(x => x.id === id)).st, est = estimate($('f-type').value);
     undo = clone(S.degats);
-    S.degats.push({date: iso(TODAY), id, type: $('f-type').value, description: $('f-desc').value || '—', gravite: $('f-grav').value, cout: null, statut: 'À réparer', immobilise: $('f-immo').checked, estimation: est.med ? eur(est.med) : 'à chiffrer'});
+    const nd = {date: iso(TODAY), id, type: $('f-type').value, description: $('f-desc').value || '—', gravite: $('f-grav').value, cout: null, statut: 'À réparer', immobilise: $('f-immo').checked, estimation: est.med ? eur(est.med) : 'à chiffrer'};
+    if (src === 'sheet') nd._row = Math.max(1, ...S.degats.map(d => d._row || 0)) + 1;
+    S.degats.push(nd);
     lastAdded = id; render();
     const after = compute(S.parc.find(x => x.id === id)).st;
     $('result').classList.add('hide');
     const t = $('toast'); t.classList.remove('hide');
     t.innerHTML = `Ajouté au carnet. <b>${esc(id)}</b> : ${before === after ? 'reste' : 'passe de ' + esc(before) + ' à'} <b>${esc(after)}</b>. <button id="undo" style="min-height:36px;margin-left:6px">Annuler</button>`;
-    $('undo').onclick = () => { if (undo) { S.degats = undo; undo = null; lastAdded = null; render(); t.classList.add('hide'); } };
+    $('undo').onclick = () => { if (undo) { S.degats = undo; undo = null; lastAdded = null; render(); t.classList.add('hide'); if (nd._row) sync(`'Dégâts'!A${nd._row}:H${nd._row}`, [['', '', '', '', '', '', '', '']], 'Ligne retirée de la Google Sheet.'); } };
     $('msg').value = '';
+    if (nd._row) sync(`'Dégâts'!A${nd._row}:H${nd._row}`, [degatRow(nd)], `Écrit dans la Google Sheet, ligne ${nd._row}.`);
   };
 }
 
@@ -364,13 +442,23 @@ $('tb-deg').addEventListener('click', e => {
   const i = +b.dataset.fix, inp = document.querySelector(`[data-cost="${i}"]`), v = parseFloat(inp.value);
   if (isNaN(v)) { inp.focus(); return; }
   S.degats[i].cout = v; S.degats[i].statut = 'Réparé'; S.degats[i].immobilise = false; lastAdded = null; render();
+  const r = S.degats[i]._row;
+  if (r) { $('toast').classList.add('hide'); $('toast').textContent = ''; sync(`'Dégâts'!F${r}:H${r}`, [[v, 'Réparé', 'non']], `Réparation enregistrée dans la Google Sheet (ligne ${r}).`); }
 });
 
 /* --- onglets --- */
+const showTab = v => {
+  document.querySelectorAll('.tabs [data-v]').forEach(x => x.setAttribute('aria-selected', x.dataset.v === v));
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('hide', el.id !== 'v-' + v));
+};
+$('todo').addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  const g = b.dataset.go;
+  if (g === '#budget') showTab('budget'); else { lastAdded = g; render(); showTab('parc'); }
+  document.querySelector('nav.tabs').scrollIntoView({behavior: 'smooth'});
+});
 document.querySelector('.tabs').addEventListener('click', e => {
-  const b = e.target.closest('[data-v]'); if (!b) return;
-  document.querySelectorAll('.tabs [data-v]').forEach(x => x.setAttribute('aria-selected', x === b));
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('hide', v.id !== 'v-' + b.dataset.v));
+  const b = e.target.closest('[data-v]'); if (b) showTab(b.dataset.v);
 });
 
 /* --- questions --- */
@@ -420,21 +508,22 @@ $('up').addEventListener('change', async e => {
     unk.forEach(c => { S.hyp.duree_vie_ans[c] = 3; });
     S.parc = parc;
     S.degats = G.map(r => ({date: dstr(pick(r, 'date')), id: String(pick(r, 'idmateriel', 'id')).trim(), type: String(pick(r, 'type') || 'Autre'), description: String(pick(r, 'description')), gravite: String(pick(r, 'gravite') || 'Moyenne'), cout: parseFloat(pick(r, 'cout', 'couteur')) || null, statut: String(pick(r, 'statut') || 'Réparé'), immobilise: /^o/i.test(String(pick(r, 'immobilise')))})).filter(d => d.id);
-    lastAdded = null; hypForm(); render();
+    lastAdded = null; setSrc('file'); hypForm(); render();
     $('xls-state').textContent = `Chargé : ${parc.length} pièces, ${S.degats.length} dégâts.` + (unk.length ? ` Catégories nouvelles (${unk.join(', ')}) : durée de vie de 3 ans par défaut, modifiable dans Règles de calcul.` : '');
   } catch { $('xls-state').textContent = 'Je n\'ai pas reconnu le format. Pars du fichier téléchargé : onglets Parc et Dégâts, mêmes colonnes.'; }
 });
 
-$('reset').addEventListener('click', () => { S = {hyp: clone(DEMO.hypotheses), parc: clone(DEMO.parc), degats: clone(DEMO.degats)}; undo = null; lastAdded = null; hypForm(); render(); $('result').classList.add('hide'); $('toast').classList.add('hide'); });
+$('reset').addEventListener('click', () => { S = {hyp: clone(DEMO.hypotheses), parc: clone(DEMO.parc), degats: clone(DEMO.degats)}; undo = null; lastAdded = null; setSrc('demo'); hypForm(); render(); $('result').classList.add('hide'); $('toast').classList.add('hide'); });
 
 hypForm(); render();
 const noAI = () => { $('ai-state').textContent = 'Analyse IA indisponible ici : saisie manuelle possible.'; };
 const boot = tries => {
   if (window.claude && claude.use) {
     claude.use('sample').then(s => { sample = s; if (!s) noAI(); }, noAI);
+    claude.use('mcp').then(m => { mcp = m; if (!m) { $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; } }, () => $('sheet-box').classList.add('hide'));
     claude.use('downloads').then(d => { downloads = d; if (!d) $('dl').classList.add('hide'); }, () => $('dl').classList.add('hide'));
   } else if (tries > 0) setTimeout(() => boot(tries - 1), 500);
-  else { noAI(); $('dl').classList.add('hide'); }
+  else { noAI(); $('dl').classList.add('hide'); $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; }
 };
 boot(6);
 }

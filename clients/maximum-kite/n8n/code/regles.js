@@ -2,7 +2,7 @@
 // Hypothèses de départ, à caler avec l'école (voir docs/regles-de-calcul.md).
 // Ce bloc est recopié en tête des nodes Code par tools/build_n8n.py.
 const HYP = {
-  duree_vie_ans: { 'Aile kite': 3, 'Aile wing': 3, 'Planche twintip': 4, 'Planche wingfoil': 5, 'Foil': 5, 'Harnais': 2, 'Barre': 3 },
+  duree_vie_ans: { 'Voile kite': 3, 'Aile wing': 3, 'Planche twintip': 4, 'Planche wingfoil': 5, 'Foil': 5, 'Harnais': 2, 'Barre': 3 },
   seuil_reparations_pct: 50,
   surveiller_age_pct: 80,
   surveiller_reparations_pct: 30,
