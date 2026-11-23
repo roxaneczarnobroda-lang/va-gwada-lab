@@ -74,7 +74,7 @@ wl = wb.create_sheet("Lisez-moi")
 for line in [
     "Fichier du Gréeur — DONNÉES FICTIVES (démo VA Gwada pour Maximum Kite)",
     "",
-    "Parc : une ligne par pièce de matos. L'ID doit être unique (ex. K-01 pour une aile kite).",
+    "Parc : une ligne par pièce de matos. L'ID doit être unique (ex. K-01 pour une voile kite).",
     "Dégâts : une ligne par dégât. 'ID matériel' doit correspondre à un ID du Parc.",
     "Coût : laisser vide tant que la réparation n'est pas payée.",
     "Immobilisé : 'oui' si la pièce ne doit pas sortir avant réparation.",

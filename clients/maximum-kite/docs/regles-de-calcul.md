@@ -20,7 +20,7 @@ Réponse à la question « sur quoi s'appuient les estimations de réparation et
 
 | Catégorie | Durée de vie |
 |---|---|
-| Aile kite | 3 ans |
+| Voile kite | 3 ans |
 | Aile wing | 3 ans |
 | Planche twintip | 4 ans |
 | Planche wingfoil | 5 ans |

@@ -4,7 +4,7 @@ Avant le rendez-vous : ouvrir l'app, cliquer « Revenir aux données de démo »
 
 1. **Le brief du matin** (30 s). « Voilà ce que tu recevrais chaque matin sur WhatsApp : ce qui peut sortir, ce qui doit rester au sec, ton budget. »
 2. **Lui faire signaler un dégât** (2 min). Lui tendre le téléphone : « Raconte-moi le dernier truc cassé, comme tu le dirais à un moniteur. » Analyser, montrer la fiche, la pièce retrouvée, l'estimation **tirée de son historique**, l'alerte. Ajouter. Montrer que la pièce change d'état.
-3. **Le budget** (1 min). Onglet *Budget 12 mois* : chaque ligne dit pourquoi. Puis *Règles de calcul* : passer les ailes kite de 3 à 4 ans, et revenir au budget, qui baisse en direct. « Les règles, c'est toi qui les fixes. »
+3. **Le budget** (1 min). Onglet *Budget 12 mois* : chaque ligne dit pourquoi. Puis *Règles de calcul* : passer les voiles kite de 3 à 4 ans, et revenir au budget, qui baisse en direct. « Les règles, c'est toi qui les fixes. »
 4. **Une question** (1 min). Onglet *Questions au Gréeur* : « Qu'est-ce que je dois racheter avant la haute saison ? »
 5. **Le fichier** (30 s). Onglet *Fichier Excel* : « Tout repose sur ce fichier. Pas d'appli à installer. Si tu as déjà un fichier, on le branche. »
 
