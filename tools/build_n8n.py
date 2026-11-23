@@ -17,10 +17,9 @@ code = lambda name: (N8N / "code" / name).read_text(encoding="utf-8")
 REGLES = code("regles.js")
 
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8/edit"
-EMAIL = "roxane.czarnobroda@gmail.com"
 
 # Credentials propres à chaque instance n8n : dans n8n/credentials.local.json (ignoré par git).
-# Format : {"anthropicApi": {"id": "...", "name": "..."}, "gmailOAuth2": {...}, "googleSheetsOAuth2Api": {...}}
+# Format : {"anthropicApi": {"id": "...", "name": "..."}, "googleSheetsOAuth2Api": {...}}
 _cred_file = N8N / "credentials.local.json"
 CREDS = json.loads(_cred_file.read_text(encoding="utf-8")) if _cred_file.exists() else {}
 
@@ -51,16 +50,6 @@ def sheet_read(name, tab, pos, execute_once=False):
 
 def code_node(name, js, pos):
     return {"parameters": {"jsCode": js}, "name": name, "type": "n8n-nodes-base.code", "typeVersion": 2, "position": pos}
-
-
-def gmail(name, subject, body, pos):
-    return with_cred({
-        "parameters": {
-            "sendTo": EMAIL, "subject": subject, "emailType": "text", "message": body,
-            "options": {"appendAttribution": False},
-        },
-        "name": name, "type": "n8n-nodes-base.gmail", "typeVersion": 2.1, "position": pos,
-    }, "gmailOAuth2")
 
 
 def link(*names):
@@ -108,26 +97,9 @@ def build():
             },
             "name": "Ajouter au carnet", "type": "n8n-nodes-base.googleSheets", "typeVersion": 4.5, "position": [1320, 0],
         }, "googleSheetsOAuth2Api"),
-        {
-            "parameters": {
-                "conditions": {
-                    "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "loose"},
-                    "conditions": [{
-                        "id": "envoyer", "leftValue": "={{ $('Construire la ligne Dégâts').item.json._envoyer }}",
-                        "rightValue": "", "operator": {"type": "boolean", "operation": "true", "singleValue": True},
-                    }],
-                    "combinator": "and",
-                },
-                "options": {},
-            },
-            "name": "Alerte nécessaire ?", "type": "n8n-nodes-base.if", "typeVersion": 2, "position": [1540, 0],
-        },
-        gmail("Envoyer l'alerte", "={{ $('Construire la ligne Dégâts').item.json._sujet }}",
-              "={{ $('Construire la ligne Dégâts').item.json._alerte }}", [1760, -80]),
     ]
     wf1_conn = link("Formulaire dégât", "Lire Parc", "Lire Dégâts", "Préparer la demande IA",
-                    "Claude analyse le message", "Construire la ligne Dégâts", "Ajouter au carnet", "Alerte nécessaire ?")
-    wf1_conn["Alerte nécessaire ?"] = {"main": [[{"node": "Envoyer l'alerte", "type": "main", "index": 0}], []]}
+                    "Claude analyse le message", "Construire la ligne Dégâts", "Ajouter au carnet")
 
     # --- Workflow 2 : brief matos du lundi ----------------------------------------------------
     wf2_nodes = [
@@ -138,9 +110,18 @@ def build():
         sheet_read("Lire Parc", "Parc", [220, 0]),
         sheet_read("Lire Dégâts", "Dégâts", [440, 0], execute_once=True),
         code_node("Calculer le brief", REGLES + "\n" + code("brief.js"), [660, 0]),
-        gmail("Envoyer le brief", "={{ $json.sujet }}", "={{ $json.brief }}", [880, 0]),
+        with_cred({
+            "parameters": {
+                "documentId": {"__rl": True, "mode": "url", "value": SHEET_URL},
+                "sheetName": {"__rl": True, "mode": "name", "value": "Brief"},
+                "operation": "append",
+                "columns": {"mappingMode": "autoMapInputData", "value": {}},
+                "options": {"handlingExtraData": "ignoreIt", "cellFormat": "RAW"},
+            },
+            "name": "Écrire le brief", "type": "n8n-nodes-base.googleSheets", "typeVersion": 4.5, "position": [880, 0],
+        }, "googleSheetsOAuth2Api"),
     ]
-    wf2_conn = link("Chaque lundi 7h", "Lire Parc", "Lire Dégâts", "Calculer le brief", "Envoyer le brief")
+    wf2_conn = link("Chaque lundi 7h", "Lire Parc", "Lire Dégâts", "Calculer le brief", "Écrire le brief")
 
     return wf1_nodes, wf1_conn, wf2_nodes, wf2_conn
 

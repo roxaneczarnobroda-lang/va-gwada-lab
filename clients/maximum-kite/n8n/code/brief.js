@@ -10,11 +10,20 @@ const net = B.reduce((s, x) => s + x.prix * (1 - HYP.revente_pct / 100), 0);
 const fmt = n => Math.round(n).toLocaleString('fr-FR') + ' €';
 
 const lignes = [
-  `Bonjour ! ${A.length - by('Immobilisé').length} pièces sur ${A.length} peuvent sortir.`,
+  `${A.length - by('Immobilisé').length} pièces sur ${A.length} peuvent sortir.`,
   by('Immobilisé').length ? `Ne pas sortir : ${by('Immobilisé').map(x => `${x.id} (${x.designation})`).join(', ')}.` : 'Rien d\'immobilisé.',
   by('À remplacer').length ? `À remplacer : ${by('À remplacer').map(x => `${x.id} — ${x.why.join(', ')}`).join(' ; ')}.` : '',
   by('À surveiller').length ? `À surveiller : ${by('À surveiller').map(x => x.id).join(', ')}.` : '',
   `Budget de renouvellement sur 12 mois : ${fmt(net)} net (${B.length} pièces, revente ${HYP.revente_pct} % déduite).`,
 ].filter(Boolean);
 
-return [{ json: { sujet: `[Gréeur] Brief matos du ${today.toLocaleDateString('fr-FR')}`, brief: lignes.join('\n') } }];
+// Une ligne par passage dans l'onglet « Brief » de la Google Sheet : la page web l'affiche.
+return [{ json: {
+  date: today.toISOString().slice(0, 10),
+  brief: lignes.join(' '),
+  ok: by('OK').length,
+  surveiller: by('À surveiller').length,
+  remplacer: by('À remplacer').length,
+  immobilise: by('Immobilisé').length,
+  budget_12_mois: Math.round(net),
+} }];

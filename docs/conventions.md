@@ -23,4 +23,4 @@
 
 ## Git
 - Une branche par chantier (`maximum-kite/greeur-v2`), puis une pull request que l'autre relit.
-- Messages de commit en français, à l'impératif : « Ajoute l'alerte WhatsApp au Gréeur ».
+- Messages de commit en français, à l'impératif : « Ajoute la liste À traiter au Gréeur ».

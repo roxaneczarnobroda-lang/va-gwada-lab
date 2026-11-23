@@ -1,5 +1,6 @@
 // Node "Construire la ligne Dégâts" — mode : Run Once for All Items
 // Lit la réponse de Claude, vérifie l'ID, calcule l'estimation à partir de l'historique (jamais inventée par l'IA).
+// La ligne va dans l'onglet Dégâts ; la page web l'affiche dans « À traiter ».
 const today = new Date(); today.setHours(12, 0, 0, 0);
 const form = $('Formulaire dégât').first().json;
 const parc = $('Lire Parc').all().map(i => i.json).filter(r => r.id);
@@ -25,12 +26,9 @@ const ligne = {
 };
 const apres = piece ? statut(piece, [...degats, ligne], today).st : '?';
 
-const alerte = piece
-  ? `${j.immobiliser ? 'NE PAS SORTIR' : 'À contrôler'} : ${piece.id} (${piece.designation}).\n` +
-    `${type}, gravité ${String(ligne.gravite).toLowerCase()} : ${ligne.description}\n` +
-    `Signalé par ${form['Moniteur'] || 'un moniteur'}.\nRéparation : ${est.texte}.\nÉtat : ${avant} → ${apres}.` +
-    (j.question ? `\nQuestion à poser : ${j.question}` : '') +
-    (j.candidats?.length ? `\nAutres pièces possibles : ${j.candidats.join(', ')}` : '')
-  : `Dégât signalé mais pièce non identifiée — à vérifier à la main.\nMessage : ${form["Ce qui s'est passé"]}`;
+// Résumé lisible dans l'historique des exécutions n8n (ignoré par la Google Sheet).
+const resume = piece
+  ? `${j.immobiliser ? 'NE PAS SORTIR' : 'À contrôler'} : ${piece.id} (${piece.designation}). ${type}, ${String(ligne.gravite).toLowerCase()}. Réparation : ${est.texte}. État : ${avant} → ${apres}.`
+  : `Pièce non identifiée, à vérifier à la main. Message : ${form["Ce qui s'est passé"]}`;
 
-return [{ json: { ...ligne, _alerte: alerte, _envoyer: j.immobiliser === true || !piece, _sujet: piece ? `[Gréeur] ${piece.id} — ${type}` : '[Gréeur] Dégât à vérifier' } }];
+return [{ json: { ...ligne, _resume: resume, _question: j.question || '', _candidats: (j.candidats || []).join(', ') } }];

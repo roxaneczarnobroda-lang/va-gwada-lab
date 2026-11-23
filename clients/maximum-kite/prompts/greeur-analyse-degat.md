@@ -26,4 +26,4 @@ MESSAGE DU MONITEUR : """{{MESSAGE}}"""
 ## Pistes d'amélioration
 - Ajouter 3 exemples (message → JSON) tirés des vrais signalements de l'école.
 - Accepter une photo du dégât (le modèle sait lire une image) pour la gravité.
-- Accepter un vocal WhatsApp transcrit.
+- Accepter un message dicté (micro du téléphone) plutôt que tapé.
