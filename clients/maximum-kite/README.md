@@ -18,14 +18,15 @@ Ouvrir le lien de l'app sur téléphone ou tablette. Pas besoin du Mac de Roxane
 
 ## Faire tourner la version n8n (Roxane)
 
-1. Créer une Google Sheet « Gréeur — démo » avec deux onglets **Parc** et **Dégâts**. Importer `data/parc.csv` et `data/degats.csv` (Fichier → Importer → Remplacer la feuille actuelle).
-2. `npx n8n`, puis importer `n8n/greeur-signalement-degat.json` et `n8n/greeur-brief-hebdo.json`.
-3. Dans chaque node Google Sheets, remplacer `COLLE_ICI_L_URL_DE_TA_GOOGLE_SHEET_GREEUR` par l'URL de la feuille et choisir la credential Google Sheets.
-4. Sur le node « Claude analyse le message » : credential **Anthropic** (la même clé que pour le workflow email). Le modèle est défini dans `n8n/code/signalement_prompt.js` (`claude-haiku-5-5`).
-5. Sur les nodes Gmail : credential Gmail. Le destinataire est dans `tools/build_n8n.py` (`EMAIL`).
-6. Tester : ouvrir le formulaire (bouton *Test step* sur « Formulaire dégât ») et envoyer un message.
+La Google Sheet de démo existe déjà : « Gréeur — démo Maximum Kite (données fictives) » dans le Drive de Roxane (onglets Parc et Dégâts, mêmes données que `data/`). Les workflows pointent dessus.
 
-⚠️ Ces workflows ont été testés hors de n8n (le code des nodes tourne sur les données de démo et donne les mêmes résultats que l'app). L'import dans n8n, lui, n'a pas encore été testé. Si un node s'affiche en erreur après l'import, noter lequel et on corrige le générateur.
+1. `npx n8n`, puis importer `n8n/greeur-signalement-degat.json` et `n8n/greeur-brief-hebdo.json` (menu ⋯ → Import from File).
+2. Choisir les credentials sur les nodes Google Sheets, « Claude analyse le message » (Anthropic) et Gmail.
+   Raccourci : créer `n8n/credentials.local.json` avec les ids de ses credentials (voir `tools/build_n8n.py`) puis relancer le build. Il produit des `*.local.json` déjà branchés, ignorés par git.
+3. Le modèle est défini dans `n8n/code/signalement_prompt.js` (`claude-haiku-5-5`). Le destinataire des emails est dans `tools/build_n8n.py` (`EMAIL`).
+4. Tester : ouvrir le formulaire (*Test step* sur « Formulaire dégât ») et envoyer un message.
+
+Saskia : pour tester sur son propre n8n, faire une copie de la Google Sheet et remplacer `SHEET_URL` dans `tools/build_n8n.py`.
 
 ## À creuser avec l'école
 - Son fichier actuel existe-t-il ? Quelles colonnes ? (l'app sait charger un Excel au même format)

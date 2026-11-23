@@ -34,7 +34,7 @@
         "documentId": {
           "__rl": true,
           "mode": "url",
-          "value": "COLLE_ICI_L_URL_DE_TA_GOOGLE_SHEET_GREEUR"
+          "value": "https://docs.google.com/spreadsheets/d/1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8/edit"
         },
         "sheetName": {
           "__rl": true,
@@ -57,7 +57,7 @@
         "documentId": {
           "__rl": true,
           "mode": "url",
-          "value": "COLLE_ICI_L_URL_DE_TA_GOOGLE_SHEET_GREEUR"
+          "value": "https://docs.google.com/spreadsheets/d/1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8/edit"
         },
         "sheetName": {
           "__rl": true,
@@ -133,7 +133,7 @@
         "documentId": {
           "__rl": true,
           "mode": "url",
-          "value": "COLLE_ICI_L_URL_DE_TA_GOOGLE_SHEET_GREEUR"
+          "value": "https://docs.google.com/spreadsheets/d/1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8/edit"
         },
         "sheetName": {
           "__rl": true,
@@ -146,7 +146,8 @@
           "value": {}
         },
         "options": {
-          "handlingExtraData": "ignoreIt"
+          "handlingExtraData": "ignoreIt",
+          "cellFormat": "RAW"
         }
       },
       "name": "Ajouter au carnet",
