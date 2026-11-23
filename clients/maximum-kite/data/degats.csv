@@ -1,0 +1,11 @@
+date,id,type,description,gravite,cout,statut,immobilise
+2025-02-10,K-02,Déchirure toile,Déchirure de 6 cm sur l'extrados,Moyenne,120,Réparé,non
+2025-08-03,K-04,Boudin percé,"Boudin d'attaque percé, valve à changer",Moyenne,90,Réparé,non
+2025-11-20,W-04,Déchirure toile,Fenêtre fendue sur 4 cm,Légère,60,Réparé,non
+2026-03-15,K-04,Déchirure toile,Déchirure de 15 cm au bord de fuite,Grave,260,Réparé,non
+2026-04-08,K-01,Bride / ligne,Bride avant usée,Légère,40,Réparé,non
+2026-05-12,B-03,Choc planche / délaminage,"Choc sur le rail, début de délaminage",Moyenne,150,Réparé,non
+2026-06-22,BA-01,Bride / ligne,"Jeu de lignes usé, remplacé",Moyenne,80,Réparé,non
+2026-07-30,F-01,"Foil (mât, fuselage, ailes)","Vis du mât arrachée, filetage refait",Moyenne,180,Réparé,non
+2026-09-02,K-04,Bride / ligne,Bride arrière cassée en session,Légère,45,Réparé,non
+2026-10-28,W-04,Boudin percé,Boudin d'attaque percé après chute sur le récif,Moyenne,110,Chez le réparateur,oui
