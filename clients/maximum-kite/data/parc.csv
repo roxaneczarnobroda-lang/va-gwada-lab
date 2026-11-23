@@ -1,0 +1,19 @@
+id,categorie,designation,date_achat,prix_achat
+K-01,Aile kite,Aile kite 7 m,2024-03-10,1400
+K-02,Aile kite,Aile kite 9 m,2023-12-01,1500
+K-03,Aile kite,Aile kite 9 m,2024-10-20,1550
+K-04,Aile kite,Aile kite 12 m,2022-12-10,1700
+K-05,Aile kite,Aile kite 12 m,2025-01-15,1800
+W-01,Aile wing,Aile wing 4 m,2024-02-01,850
+W-02,Aile wing,Aile wing 5 m,2024-02-01,900
+W-03,Aile wing,Aile wing 5 m,2025-06-10,950
+W-04,Aile wing,Aile wing 6 m,2023-12-20,950
+B-01,Planche twintip,Twintip 138 cm,2022-11-01,550
+B-02,Planche twintip,Twintip 141 cm,2024-11-05,600
+B-03,Planche wingfoil,Planche wingfoil 110 L,2023-01-20,1200
+B-04,Planche wingfoil,Planche wingfoil 140 L,2024-12-01,1300
+F-01,Foil,Foil 1800 cm²,2023-01-20,1250
+F-02,Foil,Foil 2000 cm²,2025-03-01,1350
+H-01,Harnais,Harnais taille M,2025-04-10,230
+H-02,Harnais,Harnais taille L,2023-10-05,230
+BA-01,Barre,Barre 22 m,2024-03-10,520
