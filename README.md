@@ -20,7 +20,7 @@ docs/                      conventions communes à tous les clients
 
 ## Le principe
 
-Une seule source de données par client (`data/*.json`). Les scripts de `tools/` en tirent :
+Une seule source de données par client (`data/*.json`), et un seul fichier de règles par agent quand la page et n8n doivent décider pareil (ex. `n8n/code/accueil_regles.js`, injecté dans la page au build). Les scripts de `tools/` en tirent :
 - l'app de démo (données intégrées dans le HTML),
 - le fichier Excel à montrer et à faire remplir au client,
 - les CSV à importer dans une Google Sheet de test pour n8n.
@@ -29,8 +29,9 @@ Si on change une donnée ou une règle, on relance les scripts. L'app et les wor
 
 ```bash
 pip install openpyxl          # une seule fois
-python3 tools/build_greeur.py # app + Excel + CSV
-python3 tools/build_n8n.py    # workflows n8n
+python3 tools/build_greeur.py  # Gréeur : app + Excel + CSV
+python3 tools/build_accueil.py # Accueil : app + CSV des onglets
+python3 tools/build_n8n.py     # workflows n8n (Gréeur + Accueil)
 ```
 
 ## Démonstrateurs en ligne
@@ -38,6 +39,7 @@ python3 tools/build_n8n.py    # workflows n8n
 | Client | Agent | Lien |
 |---|---|---|
 | Maximum Kite | Le Gréeur (matos) | https://claude.ai/artifact/8G5RXqhYTsB3GqLTWjxQsu (privé : à partager avec Saskia depuis claude.ai) |
+| Maximum Kite | L'Accueil (vacanciers) | https://claude.ai/artifact/TrBdK7B3eJTndSf89RuKbB (privé : à partager avec Saskia depuis claude.ai) |
 
 ## Ajouter un client
 

@@ -1,0 +1,80 @@
+{
+  "_note": "Données FICTIVES pour la démo L'Accueil (Maximum Kite). Clients, messages, tarifs, vent et réservations sont inventés. Le parc et les dégâts viennent de parc-matos-demo.json (même fichier que le Gréeur). Les dates sont relatives : j = 0 c'est aujourd'hui, j = 1 demain, j = -1 hier.",
+  "regles": {
+    "ecole": "Maximum Kite",
+    "lieu": "marina du Gosier",
+    "moniteurs": ["Théo", "Inès"],
+    "creneaux": [
+      {"code": "matin", "label": "9h00–11h00", "debut": "09:00", "fin": "11:00"},
+      {"code": "midi", "label": "11h30–13h30", "debut": "11:30", "fin": "13:30"},
+      {"code": "aprem", "label": "14h30–16h30", "debut": "14:30", "fin": "16:30"}
+    ],
+    "offres": [
+      {"code": "kite-init", "nom": "Initiation kite", "duree_h": 2, "prix": 130, "max_eleves": 2, "age_min": 12, "poids_min": 40, "vent_min": 12, "vent_max": 25,
+       "matos": [{"categorie": "Voile kite", "regle": "kite"}]},
+      {"code": "kite-perf", "nom": "Perfectionnement kite", "duree_h": 2, "prix": 120, "max_eleves": 2, "age_min": 12, "poids_min": 40, "vent_min": 12, "vent_max": 25,
+       "matos": [{"categorie": "Voile kite", "regle": "kite"}, {"categorie": "Planche twintip", "regle": "twintip"}]},
+      {"code": "wing-init", "nom": "Initiation wingfoil", "duree_h": 2, "prix": 120, "max_eleves": 2, "age_min": 10, "poids_min": 30, "vent_min": 12, "vent_max": 22,
+       "matos": [{"categorie": "Aile wing", "regle": "wing"}, {"categorie": "Planche wingfoil", "regle": "volume"}, {"categorie": "Foil", "regle": "grand"}]}
+    ],
+    "tailles": {
+      "kite": [
+        {"vent_max": 15, "par_poids": [[60, 9], [80, 12], [999, 12]]},
+        {"vent_max": 20, "par_poids": [[60, 7], [80, 9], [999, 12]]},
+        {"vent_max": 99, "par_poids": [[60, 7], [80, 7], [999, 9]]}
+      ],
+      "wing": [
+        {"vent_max": 15, "par_poids": [[70, 5], [999, 6]]},
+        {"vent_max": 20, "par_poids": [[70, 4.5], [999, 5]]},
+        {"vent_max": 99, "par_poids": [[999, 4.5]]}
+      ],
+      "volume": [{"vent_max": 99, "par_poids": [[70, 140], [999, 170]]}],
+      "twintip": [{"vent_max": 99, "par_poids": [[75, 141], [999, 145]]}],
+      "poids_par_defaut": 70
+    },
+    "acompte_pct": 30,
+    "reduction": {"pct": 10, "prefixe": "MK10-", "validite_mois": 12},
+    "annulation": "Si le vent sort de la plage prévue, le cours est reporté ou l'acompte est remboursé.",
+    "lien_avis": "https://g.page/r/LIEN-AVIS-A-FOURNIR",
+    "lien_album_defaut": "https://photos.app.goo.gl/EXEMPLE-ALBUM",
+    "lien_acompte": "https://exemple-paiement.fr/maximum-kite"
+  },
+  "vent": [
+    {"j": 0, "matin": 16, "midi": 18, "aprem": 19, "dir": "ENE"},
+    {"j": 1, "matin": 14, "midi": 17, "aprem": 18, "dir": "E"},
+    {"j": 2, "matin": 9, "midi": 11, "aprem": 13, "dir": "E"},
+    {"j": 3, "matin": 15, "midi": 18, "aprem": 20, "dir": "ENE"},
+    {"j": 4, "matin": 22, "midi": 26, "aprem": 28, "dir": "NE"},
+    {"j": 5, "matin": 17, "midi": 19, "aprem": 20, "dir": "E"},
+    {"j": 6, "matin": 13, "midi": 15, "aprem": 16, "dir": "ESE"}
+  ],
+  "demandes": [
+    {"id": "D-201", "recu_min": 12, "canal": "Instagram", "contact": "@lena.and.max", "langue": "en",
+     "message": "Hi! We're in Guadeloupe until Saturday 🌴 My boyfriend and I would love to try kitesurfing for the first time. Would tomorrow afternoon work? I'm about 58 kg and he's 82 kg. How much is it?"},
+    {"id": "D-202", "recu_min": 47, "canal": "Email", "contact": "markus.weber@example.de", "langue": "de",
+     "message": "Guten Tag, ich habe etwas Windsurf-Erfahrung und würde gern Wingfoil ausprobieren. Hätten Sie übermorgen Vormittag Zeit? Ich wiege 78 kg. Viele Grüße, Markus"},
+    {"id": "D-203", "recu_min": 95, "canal": "Instagram", "contact": "@sandrine_971", "langue": "fr",
+     "message": "Bonjour ! Vous faites des cours de kite pour les enfants ? Mon fils a 10 ans, on est dispo ce week-end 😊"},
+    {"id": "D-204", "recu_min": 180, "canal": "Email", "contact": "j.morel@example.fr", "langue": "fr",
+     "message": "Bonjour, kiteur confirmé de passage une semaine, est-ce que vous louez du matériel sans cours ? Merci, Julien"}
+  ],
+  "reservations": [
+    {"resa": "R-098", "j": -1, "creneau": "midi", "offre": "kite-init", "client": "Ana", "canal": "Instagram", "contact": "@ana.viaja", "langue": "es", "nb": 1, "participants": "Ana 55 kg", "moniteur": "Théo", "matos": "K-01", "prix_total": 130, "acompte": 39, "statut": "Terminé", "code": "MK10-ANA"},
+    {"resa": "R-101", "j": 0, "creneau": "matin", "offre": "kite-init", "client": "Claire", "canal": "Email", "contact": "claire.d@example.fr", "langue": "fr", "nb": 1, "participants": "Claire 62 kg", "moniteur": "Théo", "matos": "K-02", "prix_total": 130, "acompte": 39, "statut": "Confirmé", "code": ""},
+    {"resa": "R-102", "j": 0, "creneau": "aprem", "offre": "wing-init", "client": "Tom & Sarah", "canal": "Instagram", "contact": "@tomsarah.travels", "langue": "en", "nb": 2, "participants": "Tom 80 kg · Sarah 60 kg", "moniteur": "Inès", "matos": "W-02,B-04,F-02,W-01,B-03,F-01", "prix_total": 240, "acompte": 72, "statut": "Confirmé", "code": ""},
+    {"resa": "R-103", "j": 1, "creneau": "aprem", "offre": "kite-init", "client": "Julien", "canal": "Email", "contact": "julien.b@example.fr", "langue": "fr", "nb": 1, "participants": "Julien 85 kg", "moniteur": "Théo", "matos": "K-05", "prix_total": 130, "acompte": 39, "statut": "Confirmé", "code": ""},
+    {"resa": "R-104", "j": 3, "creneau": "matin", "offre": "kite-perf", "client": "Paul", "canal": "Instagram", "contact": "@paul.rides", "langue": "fr", "nb": 1, "participants": "Paul 74 kg", "moniteur": "Inès", "matos": "K-05,B-01", "prix_total": 120, "acompte": 36, "statut": "Proposé", "code": ""}
+  ],
+  "utilisations": [
+    {"j": -3, "resa": "R-091", "id": "K-03", "heures": 2, "client": "Hugo"},
+    {"j": -3, "resa": "R-092", "id": "W-03", "heures": 2, "client": "Léa"},
+    {"j": -3, "resa": "R-092", "id": "B-04", "heures": 2, "client": "Léa"},
+    {"j": -3, "resa": "R-092", "id": "F-02", "heures": 2, "client": "Léa"},
+    {"j": -2, "resa": "R-095", "id": "K-02", "heures": 2, "client": "Nina"},
+    {"j": -2, "resa": "R-095", "id": "K-05", "heures": 2, "client": "Nina"},
+    {"j": -1, "resa": "R-098", "id": "K-01", "heures": 2, "client": "Ana"}
+  ],
+  "messages": [
+    {"j": -1, "resa": "R-098", "canal": "Instagram", "contact": "@ana.viaja", "type": "Après le cours", "texte": "¡Gracias por la clase de hoy, Ana! Aquí tienes las fotos de tu sesión: https://photos.app.goo.gl/EXEMPLE-ALBUM. Si te gustó, ¿nos dejas una reseña en Google? https://g.page/r/LIEN-AVIS-A-FOURNIR. Para tu próxima sesión: −10 % con el código MK10-ANA (válido 12 meses). ¡Hasta pronto! — Maximum Kite", "statut": "Envoi simulé"}
+  ]
+}

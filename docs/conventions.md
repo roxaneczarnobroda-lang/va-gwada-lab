@@ -9,6 +9,7 @@
 - L'IA **classe et reformule**. Elle ne calcule pas de prix et ne décide pas. Les montants viennent de règles écrites ou de l'historique du client.
 - Toujours demander une réponse JSON et la vérifier côté code (ID existant, valeur dans une liste autorisée).
 - Toujours un repli à la main si l'IA ne répond pas.
+- Un message qui part sans relecture (ex. après le cours) est un modèle fixe, pas un texte généré.
 
 ## n8n (rappels issus de nos premiers workflows)
 - Lancement en local : `npx n8n` → http://localhost:5678.
@@ -20,7 +21,9 @@
 - Lire deux onglets à la suite : mettre *Execute Once* sur la deuxième lecture, sinon elle tourne une fois par ligne de la première.
 - Comparer un texte généré par IA : *contains*, jamais *equals*.
 - Le code des nodes Code vit dans `n8n/code/*.js` ; on modifie là, puis `python3 tools/build_n8n.py`.
+- Quand la page et n8n doivent décider pareil, les règles sont dans un seul `.js` (ex. `accueil_regles.js`) : relancer les deux builds après modification.
+- Les canaux pas encore branchés (Instagram, WhatsApp) sont remplacés par un *Form Trigger* qui joue le message entrant.
 
 ## Git
-- Une branche par chantier (`maximum-kite/greeur-v2`), puis une pull request que l'autre relit.
+- Une branche par chantier (`maximum-kite/greeur-v2`, `maximum-kite/accueil-v1`), puis une pull request que l'autre relit.
 - Messages de commit en français, à l'impératif : « Ajoute la liste À traiter au Gréeur ».
