@@ -1,6 +1,0 @@
-resa,date,creneau,offre,client,canal,contact,langue,nb,participants,moniteur,matos,prix_total,acompte,statut,code
-R-098,2026-11-23,midi,kite-init,Ana,Instagram,@ana.viaja,es,1,Ana 55 kg,Théo,K-01,130,39,Terminé,MK10-ANA
-R-101,2026-11-24,matin,kite-init,Claire,Email,claire.d@example.fr,fr,1,Claire 62 kg,Théo,K-02,130,39,Confirmé,
-R-102,2026-11-24,aprem,wing-init,Tom & Sarah,Instagram,@tomsarah.travels,en,2,Tom 80 kg · Sarah 60 kg,Inès,"W-02,B-04,F-02,W-01,B-03,F-01",240,72,Confirmé,
-R-103,2026-11-25,aprem,kite-init,Julien,Email,julien.b@example.fr,fr,1,Julien 85 kg,Théo,K-05,130,39,Confirmé,
-R-104,2026-11-27,matin,kite-perf,Paul,Instagram,@paul.rides,fr,1,Paul 74 kg,Inès,"K-05,B-01",120,36,Proposé,

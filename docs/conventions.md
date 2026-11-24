@@ -2,28 +2,40 @@
 
 ## Données
 - Données fictives uniquement dans le repo. Le marquer en tête de chaque fichier (`_note`) et dans chaque démo.
-- Une source de vérité par client : `clients/<client>/data/*.json`. Excel, CSV et HTML sont générés.
-- En-têtes de colonnes des Google Sheets de test en minuscules sans accent (`date_achat`, `prix_achat`) : plus simple dans n8n. Le fichier Excel montré au client garde des en-têtes lisibles.
+- **Une base = un fichier.** Un client a autant de Google Sheets que de sujets (ex. Maximum Kite : Matos, Réservations). On ne mélange pas les sujets dans un même fichier.
+- Les bases se relient par des identifiants, comme des tables : un `id` de pièce, un numéro de `resa`. Jamais de copie d'une même info dans deux fichiers.
+- Chaque onglet a **un agent qui l'écrit** (les autres le lisent). C'est écrit dans `clients/<client>/data/README.md`.
+- Une source par base : `clients/<client>/data/<base>.json`. Pages, Excel et workflows sont générés par `tools/build.py`.
+- **Un seul schéma partout** : mêmes onglets et mêmes noms de colonnes dans le JSON, l'Excel et la Google Sheet. Colonnes en minuscules sans accent (`date_achat`, `prix_total`), plus simples dans n8n.
+- Les IDs des Google Sheets d'un client sont dans `clients/<client>/sheets.json`, nulle part ailleurs.
 
 ## IA
-- L'IA **classe et reformule**. Elle ne calcule pas de prix et ne décide pas. Les montants viennent de règles écrites ou de l'historique du client.
+- L'IA **lit et reformule**. Elle ne calcule pas de prix, ne choisit pas un créneau et ne décide pas. Ce sont des règles écrites ou l'historique du client.
 - Toujours demander une réponse JSON et la vérifier côté code (ID existant, valeur dans une liste autorisée).
 - Toujours un repli à la main si l'IA ne répond pas.
 - Un message qui part sans relecture (ex. après le cours) est un modèle fixe, pas un texte généré.
+- Appels à l'API Anthropic depuis n8n : `thinking: { type: 'disabled' }` et lire seulement les blocs `text` de la réponse (le premier bloc peut être un bloc de réflexion vide).
 
-## n8n (rappels issus de nos premiers workflows)
+## n8n (rappels issus de nos workflows)
 - Lancement en local : `npx n8n` → http://localhost:5678.
-- Import : menu ⋯ → *Import from File*. Les credentials ne sont jamais dans le JSON : à reconnecter après import.
+- Import : menu ⋯ → *Import from File*. Les credentials ne sont jamais dans les JSON du repo. Avec `clients/<client>/credentials.local.json` (ignoré par git), le build écrit aussi des `*.local.json` déjà branchés.
 - Timezone des workflows : `America/Guadeloupe`.
-- Gmail : désactiver *Append n8n Attribution* (déjà fait dans nos JSON).
-- Google Sheets : activer l'API Sheets **et** l'API Drive dans le projet Google Cloud « VA Gwada ».
+- Gmail : désactiver *Append n8n Attribution*.
+- Google Sheets : activer l'API Sheets **et** l'API Drive dans le projet Google Cloud.
 - Un node à 0 item coupe l'exécution → *Always Output Data* sur les lectures de Sheets.
-- Lire deux onglets à la suite : mettre *Execute Once* sur la deuxième lecture, sinon elle tourne une fois par ligne de la première.
+- Lire plusieurs onglets à la suite : *Execute Once* à partir de la deuxième lecture.
 - Comparer un texte généré par IA : *contains*, jamais *equals*.
-- Le code des nodes Code vit dans `n8n/code/*.js` ; on modifie là, puis `python3 tools/build_n8n.py`.
-- Quand la page et n8n doivent décider pareil, les règles sont dans un seul `.js` (ex. `accueil_regles.js`) : relancer les deux builds après modification.
+- Le code des nodes Code vit dans `<agent>/n8n/code/*.js` ; on modifie là, puis `python3 tools/build.py`.
+- Quand la page et n8n doivent décider pareil, les règles sont dans un seul `.js` (ex. `accueil_regles.js`), injecté dans les deux par le build.
 - Les canaux pas encore branchés (Instagram, WhatsApp) sont remplacés par un *Form Trigger* qui joue le message entrant.
 
 ## Git
-- Une branche par chantier (`maximum-kite/greeur-v2`, `maximum-kite/accueil-v1`), puis une pull request que l'autre relit.
-- Messages de commit en français, à l'impératif : « Ajoute la liste À traiter au Gréeur ».
+**Un seul repo** (pas un par agent) : les agents d'un client partagent les mêmes bases et une partie des règles (l'Accueil lit l'état du matos calculé par le Gréeur). Les séparer obligerait à synchroniser plusieurs repos à chaque changement de schéma.
+
+- `main` = ce qui marche, et la version montrée aux clients.
+- **Une branche courte par changement**, partie de `main` à jour : `<client>/<agent>-<sujet>` (ex. `maximum-kite/accueil-vent-saisi`). Quelques jours maximum.
+- Avant de commencer : `git switch main && git pull`, puis `git switch -c <branche>`.
+- Pull request vers `main`, l'autre relit, puis **Squash and merge** (un commit propre par changement) et suppression de la branche.
+- Ne jamais empiler une branche sur une autre branche pas encore fusionnée : on fusionne d'abord.
+- Relancer `python3 tools/build.py` avant de committer (les fichiers générés font partie du commit).
+- Messages de commit en français, à l'impératif : « Ajoute la saisie du vent par l'école ».

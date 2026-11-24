@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Accueil — démo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: la cabane d'accueil de l'école, chaleureuse et précise : chaque créneau proposé dit pourquoi il tient
+   IDEA: même système que le Gréeur (même école, même fichier) : lagon, jaune voile, corail alerte
+   PICTURE: un DM de vacancier devient une réservation vérifiée, puis un message d'après-cours
+   LAYOUT: bandeau lagon avec la boîte de réception + À traiter, puis onglets de travail */
+:root{color-scheme:light dark;
+--bg:light-dark(#f2f6f6,#0b1d21);--card:light-dark(#ffffff,#122a30);--ink:light-dark(#0d2429,#e6f0f0);
+--soft:light-dark(#4b6267,#9fb7ba);--line:light-dark(#d5e2e3,#24434a);
+--lagon:#0c4a55;--lagon2:light-dark(#0f6170,#5cc2cf);--sail:#f5c518;--coral:light-dark(#d9402a,#ff7a63);
+--ok:light-dark(#1f7a4d,#5fd39a);--warn:light-dark(#9a6a00,#f5c518)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-weight:750;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,48px);font-stretch:85%}h2{font-size:clamp(24px,3vw,32px);font-stretch:90%}h3{font-size:18px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--lagon);color:#eef7f7}
+.top .lead{color:#bfe0e3;max-width:64ch;margin:10px 0 0}
+.note{font-size:13px;color:var(--soft)}.top .note{color:#9fcfd4}.top .panel .note{color:var(--soft)}
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;margin-top:28px;align-items:start}
+@media(max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--card);color:var(--ink);border-radius:18px;padding:22px;box-shadow:0 18px 40px -28px rgba(0,0,0,.6)}
+textarea,input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+textarea{min-height:80px;resize:vertical}
+:focus-visible{outline:3px solid var(--sail);outline-offset:2px}
+button{font:600 15px Archivo,sans-serif;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--lagon2);background:transparent;color:var(--lagon2);cursor:pointer}
+button.main{background:var(--lagon);border-color:var(--lagon);color:#fff}
+button.sail{background:var(--sail);border-color:var(--sail);color:#1b1500}
+button.sm{min-height:36px;padding:0 12px;font-size:13px}
+button:disabled{opacity:.5;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
+label{font-size:13px;font-weight:600;color:var(--soft);display:block;margin-bottom:4px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.stat{border-radius:14px;padding:12px 14px;background:var(--bg)}
+.stat b{display:block;font-size:34px;font-stretch:80%;line-height:1}
+.stat span{font-size:13px;color:var(--soft)}
+.todo{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:15px}
+.todo .why{display:block}
+.inbox{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.inbox li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px;border:1.5px solid transparent}
+.inbox li.sel{border-color:var(--sail)}
+.inbox .ex{display:block;font-size:14px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bubble{background:light-dark(#e7f3ef,#183a35);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:15px;white-space:pre-line}
+.bubble.out{background:light-dark(#fff6d6,#3a3110);border-radius:14px 14px 4px 14px}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.s-OK{background:light-dark(#dcf2e6,#173b2a);color:var(--ok)}
+.s-surv{background:light-dark(#fdf1c7,#3a3110);color:var(--warn)}
+.s-remp{background:light-dark(#fde0da,#40201a);color:var(--coral)}
+.s-immo{background:var(--coral);color:#fff}
+.s-info{background:light-dark(#dbeef1,#173840);color:var(--lagon2)}
+.step{border-top:1.5px solid var(--line);margin-top:16px;padding-top:14px}
+.step h3{display:flex;gap:8px;align-items:center}
+.step h3 i{font-style:normal;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--lagon);color:#fff;font-size:13px}
+.checks{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.checks li{display:grid;grid-template-columns:1.6em minmax(0,1fr);gap:6px}
+.checks .y{color:var(--ok);font-weight:800}.checks .n{color:var(--coral);font-weight:800}.checks .w{color:var(--warn);font-weight:800}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;background:var(--bg);border-radius:12px;padding:10px 12px;margin-top:8px;border:1.5px solid transparent;font-size:15px}
+.opt:has(input:checked){border-color:var(--sail)}
+.opt input{width:20px;height:20px;margin-top:2px}
+.part{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;margin-top:6px;align-items:end}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;border-bottom:1.5px solid var(--line)}
+nav.tabs button{flex:none;border:0;border-radius:10px 10px 0 0;color:var(--soft)}
+nav.tabs button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:inset 0 -3px 0 var(--sail)}
+.view{background:var(--card);border-radius:0 0 18px 18px;padding:22px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:13px;color:var(--soft);font-weight:600;padding:8px;border-bottom:1.5px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.flash td{animation:fl 2.4s ease-out}
+@keyframes fl{from{background-color:rgba(245,197,24,.45)}to{background-color:rgba(245,197,24,0)}}
+@media(prefers-reduced-motion:reduce){tr.flash td{animation:none}}
+.why{font-size:13px;color:var(--soft)}
+.plan{display:grid;grid-template-columns:7.5em repeat(3,minmax(0,1fr));gap:8px}
+.plan .h{font-size:13px;font-weight:600;color:var(--soft);padding:4px}
+.plan .c{background:var(--bg);border-radius:12px;padding:10px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.plan .c .r{background:var(--card);border-radius:8px;padding:6px 8px}
+@media(max-width:700px){.plan{grid-template-columns:minmax(0,1fr)}.plan .h.col{display:none}.plan .c::before{content:attr(data-l);font-size:12px;font-weight:700;color:var(--soft)}}
+.toast{margin-top:12px;padding:12px 14px;border-radius:12px;background:light-dark(#fff6d6,#3a3110);font-size:15px}
+.hide{display:none!important}
+.scroll{overflow-x:auto}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--soft)}.stack td:empty{display:none}.part{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+
+<header class="band top">
+<div class="wrap">
+<div class="row" style="justify-content:space-between">
+<div class="row" style="gap:14px">
+<svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 10h32a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H22l-9 7v-7H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="#f5c518"/><path d="M12 25c4-4 8-4 12 0s8 4 12 0" fill="none" stroke="#0c4a55" stroke-width="2.5" stroke-linecap="round"/></svg>
+<div><h1>L'Accueil</h1><div class="note">Agent vacanciers · Maximum Kite · démo VA Gwada</div></div>
+</div>
+<button id="reset" style="border-color:#9fcfd4;color:#eef7f7">Revenir aux données de démo</button>
+</div>
+<p class="lead">Les demandes Instagram et email arrivent ici. L'Accueil lit le message, vérifie le créneau avec le matos du Gréeur, le vent et les conditions de l'école, puis prépare la réponse. Après le cours, il note le matos sorti et envoie les photos, la demande d'avis Google et un code de réduction.</p>
+
+<div class="hero">
+<section class="panel" aria-labelledby="t-in">
+<div class="row" style="justify-content:space-between"><h2 id="t-in">Messages reçus</h2><span class="pill s-info">Instagram + email (simulés)</span></div>
+<ul class="inbox" id="inbox"></ul>
+<details style="margin-top:12px"><summary class="why" style="cursor:pointer">Écrire un message test, comme un vacancier</summary>
+<div class="grid2" style="margin-top:10px"><div><label for="t-canal">Canal</label><select id="t-canal"><option>Instagram</option><option>Email</option></select></div><div><label for="t-contact">Expéditeur</label><input id="t-contact" value="@vacancier.test"></div></div>
+<label for="t-msg" style="margin-top:10px">Message (n'importe quelle langue)</label>
+<textarea id="t-msg" placeholder="Ex. Hola, somos 2 y queremos probar el wingfoil el viernes por la mañana, ¿hay sitio?"></textarea>
+<div class="row" style="margin-top:10px"><button class="main" id="t-send">Recevoir ce message</button></div>
+</details>
+<div id="work" class="hide"></div>
+<div id="toast" class="toast hide" role="status"></div>
+</section>
+
+<section class="panel" aria-labelledby="t-todo">
+<div class="row" style="justify-content:space-between"><h2 id="t-todo">À traiter</h2><span class="pill s-OK" id="src">Données de démo</span></div>
+<div class="stats" id="stats"></div>
+<ul class="todo" id="todo"></ul>
+</section>
+</div>
+<p class="note" style="margin-top:16px" id="fict">Données fictives : clients, messages, tarifs, vent et réservations sont inventés. Le parc et les dégâts sont ceux de la démo du Gréeur. Aucun message ne part vraiment : Instagram et WhatsApp seront branchés une fois le projet lancé.</p>
+</div>
+</header>
+
+<main class="band">
+<div class="wrap">
+<nav class="tabs" role="tablist" aria-label="Vues">
+<button role="tab" data-v="plan" aria-selected="true">Planning 7 jours</button>
+<button role="tab" data-v="resas" aria-selected="false">Réservations</button>
+<button role="tab" data-v="apres" aria-selected="false">Après le cours</button>
+<button role="tab" data-v="utils" aria-selected="false">Utilisations du matos</button>
+<button role="tab" data-v="msgs" aria-selected="false">Messages envoyés</button>
+<button role="tab" data-v="regles" aria-selected="false">Règles et tarifs</button>
+<button role="tab" data-v="xls" aria-selected="false">Fichier</button>
+</nav>
+
+<section class="view" id="v-plan">
+<p class="why" style="margin-top:0">Vent prévu par créneau (en dur pour la démo, une API météo plus tard), cours réservés et moniteurs libres. Jaune : proposé, en attente d'acompte.</p>
+<div class="plan" id="plan"></div>
+</section>
+
+<section class="view hide" id="v-resas"><div class="scroll"><table class="stack"><thead><tr><th>Quand</th><th>Résa</th><th>Client</th><th>Cours</th><th>Moniteur</th><th>Matos</th><th class="n">Prix</th><th>Statut</th></tr></thead><tbody id="tb-resas"></tbody></table></div></section>
+
+<section class="view hide" id="v-apres">
+<h2>Après le cours</h2>
+<p class="why">Un cours confirmé dont la date est passée (ou d'aujourd'hui) se clôture ici : le matos sorti s'ajoute à l'onglet Utilisations du fichier, et le message de remerciement part avec les photos, le lien d'avis Google et le code de réduction. Dans n8n, c'est automatique chaque soir à 18h.</p>
+<div id="apres-list"></div>
+<div id="apres-form"></div>
+</section>
+
+<section class="view hide" id="v-utils">
+<h2>Ce que le matos a fait</h2>
+<p class="why">Une ligne par pièce sortie en cours, dans le même fichier que le Gréeur. Le Gréeur pourra s'en servir pour estimer l'usure à l'heure plutôt qu'à l'âge (pas encore branché dans ses règles).</p>
+<div class="grid2" style="margin-top:14px">
+<div class="scroll"><table class="stack"><thead><tr><th>Pièce</th><th class="n">Sorties</th><th class="n">Heures</th></tr></thead><tbody id="tb-usum"></tbody></table></div>
+<div class="scroll"><table class="stack"><thead><tr><th>Date</th><th>Pièce</th><th>Résa</th><th class="n">Heures</th></tr></thead><tbody id="tb-utils"></tbody></table></div>
+</div>
+</section>
+
+<section class="view hide" id="v-msgs"><div class="scroll"><table class="stack"><thead><tr><th>Date</th><th>À</th><th>Type</th><th>Message</th><th>Statut</th></tr></thead><tbody id="tb-msgs"></tbody></table></div></section>
+
+<section class="view hide" id="v-regles">
+<h2>Ce que l'Accueil vérifie</h2>
+<p class="why">L'IA lit le message et rédige la réponse. Elle ne choisit ni le créneau, ni le matos, ni le prix : ce sont ces règles qui décident. Tarifs et plages de vent inventés pour la démo, à caler avec l'école.</p>
+<div class="scroll" style="margin-top:12px"><table class="stack"><thead><tr><th>Cours</th><th class="n">Prix / pers.</th><th class="n">Élèves max</th><th class="n">Âge min</th><th class="n">Vent min (nds)</th><th class="n">Vent max (nds)</th></tr></thead><tbody id="tb-offres"></tbody></table></div>
+<div class="grid3" id="r-form" style="margin-top:14px"></div>
+<h3 style="margin-top:22px">Les règles, en clair</h3>
+<ul id="rules" style="padding-left:20px"></ul>
+</section>
+
+<section class="view hide" id="v-xls">
+<h2>Les deux fichiers derrière l'agent</h2>
+<p>Comme une petite base de données : <b>un fichier par sujet</b>, reliés par des identifiants.</p>
+<div class="grid2" style="margin-top:12px">
+<div class="bubble" style="white-space:normal"><b>Matos</b> (partagé avec le Gréeur)<br>Parc · Dégâts · Utilisations<div class="why">L'Accueil lit le parc et les dégâts, et écrit une ligne Utilisations par pièce sortie (clé : <b>id</b> de la pièce + <b>resa</b>).</div></div>
+<div class="bubble out" style="white-space:normal"><b>Réservations</b> (propre à l'Accueil)<br>Vent · Demandes · Réservations · Messages<div class="why">Le matos réservé y est désigné par son <b>id</b>, qui renvoie au Parc.</div></div>
+</div>
+<div class="row" style="margin:14px 0"><button class="sail" id="dl-m">Télécharger Matos (.xlsx)</button><button class="sail" id="dl-r">Télécharger Réservations (.xlsx)</button></div>
+<p class="note" id="xls-state"></p>
+<h3 style="margin-top:28px">Brancher les Google Sheets</h3>
+<p>La page lit et écrit dans les deux Google Sheets de démo avec ton connecteur Google Sheets. n8n travaille sur les mêmes : une demande qu'il a préparée apparaît dans les messages reçus.</p>
+<div id="sheet-box">
+<div class="grid2"><div><label for="sheet-m">ID de la Google Sheet Matos</label><input id="sheet-m" autocomplete="off" spellcheck="false"></div><div><label for="sheet-r">ID de la Google Sheet Réservations</label><input id="sheet-r" autocomplete="off" spellcheck="false"></div></div>
+<div class="row" style="margin-top:10px"><button class="main" id="sheet-load">Charger les Google Sheets</button><button id="sheet-refresh" class="hide">Recharger</button></div>
+</div>
+<p class="note" id="sheet-state"></p>
+</section>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script>
+{
+/*__REGLES__*/
+const DEMO = /*__DATA__*/null;
+const clone = o => JSON.parse(JSON.stringify(o));
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur = n => Math.round(n).toLocaleString('fr-FR') + ' €';
+const TODAY = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); return d; })();
+const J = j => aIso(new Date(TODAY.getTime() + j * A_DAY));
+const frD = s => { const d = aDate(s); return d ? d.toLocaleDateString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short'}) : s; };
+const frLong = aFrLong;
+const LANGS = {fr: 'français', en: 'anglais', de: 'allemand', es: 'espagnol', it: 'italien', nl: 'néerlandais'};
+
+function fromDemo() {
+  const now = Date.now();
+  return {
+    R: clone(DEMO.accueil.regles), parc: clone(DEMO.greeur.parc), degats: clone(DEMO.greeur.degats), hypG: clone(DEMO.greeur.hypotheses),
+    vent: DEMO.accueil.vent.map(v => ({...v, date: J(v.j)})),
+    demandes: DEMO.accueil.demandes.map(d => ({...d, recu: new Date(now - d.recu_min * 6e4).toISOString(), statut: 'Nouveau', resume: '', reponse: ''})),
+    resas: DEMO.accueil.reservations.map(r => ({...r, date: J(r.j)})),
+    utils: DEMO.greeur.utilisations.map(u => ({...u, date: J(u.j)})),
+    msgs: DEMO.accueil.messages.map(m => ({...m, date: J(m.j)})),
+  };
+}
+let S = fromDemo(), cur = null, lastResa = null;
+let sample = null, mcp = null, downloads = null, src = 'demo';
+
+// État Gréeur minimal : « À remplacer » si fin de vie dépassée ou réparations ≥ seuil (mêmes règles que le Gréeur)
+function etatGreeur(id) {
+  const p = S.parc.find(x => x.id === id); if (!p) return 'OK';
+  const life = S.hypG.duree_vie_ans[p.categorie] || 3, a = aDate(p.date_achat) || TODAY, fin = new Date(a); fin.setMonth(fin.getMonth() + Math.round(life * 12));
+  const cumul = S.degats.filter(d => d.id === id).reduce((s, d) => s + (aNum(d.cout) || 0), 0);
+  return fin <= TODAY || (p.prix_achat && cumul / p.prix_achat * 100 >= S.hypG.seuil_reparations_pct) ? 'À remplacer' : 'OK';
+}
+const ctx = () => ({R: S.R, parc: S.parc, degats: S.degats, resas: S.resas, vent: S.vent, today: TODAY, etat: etatGreeur});
+const offre = code => S.R.offres.find(o => o.code === code);
+const crLabel = c => (S.R.creneaux.find(x => x.code === c) || {}).label || c;
+const finCours = r => { const c = S.R.creneaux.find(x => x.code === r.creneau), d = aDate(r.date); if (!c || !d) return d; const f = new Date(d); f.setHours(+c.fin.slice(0, 2), +c.fin.slice(3), 0, 0); return f; };
+const aCloturer = () => S.resas.filter(r => r.statut === 'Confirmé' && r.date <= J(0));
+const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 6e4); return isNaN(m) ? '' : m < 60 ? `il y a ${Math.max(m, 1)} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : frD(iso.slice(0, 10)); };
+
+/* ---------- rendu ---------- */
+function render() {
+  const nouveaux = S.demandes.filter(d => d.statut !== 'Traité'), attente = S.resas.filter(r => r.statut === 'Proposé'), auj = S.resas.filter(r => r.date === J(0) && aActive(r)), clo = aCloturer();
+  $('stats').innerHTML = [[nouveaux.length, 'message(s) à traiter'], [attente.length, 'acompte(s) en attente'], [auj.length, 'cours aujourd\'hui'], [clo.length, 'cours à clôturer']].map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  const T = [];
+  nouveaux.forEach(d => T.push(['s-surv', d.canal, d.contact, d.message.slice(0, 70) + (d.message.length > 70 ? '…' : ''), `<button class="sm" data-open="${esc(d.id)}">Traiter</button>`]));
+  attente.forEach(r => T.push(['s-surv', 'Acompte', `${r.client} · ${frD(r.date)} ${crLabel(r.creneau)}`, `${offre(r.offre)?.nom || r.offre}, acompte ${eur(r.acompte)} demandé`, `<button class="sm" data-confirm="${esc(r.resa)}">Acompte reçu</button>`]));
+  clo.forEach(r => { const fini = finCours(r) <= new Date(); T.push([fini ? 's-remp' : 's-info', fini ? 'À clôturer' : 'Aujourd\'hui', `${r.client} · ${crLabel(r.creneau)} avec ${r.moniteur}`, `${offre(r.offre)?.nom || r.offre} · matos ${r.matos.replace(/,/g, ', ')}`, `<button class="sm" data-close="${esc(r.resa)}">${fini ? 'Clôturer' : 'Voir'}</button>`]); });
+  if (!T.length) T.push(['s-OK', 'Tout est à jour', 'Rien à traiter', 'Les nouveaux messages arriveront ici.', '']);
+  $('todo').innerHTML = T.map(([c, l, t, w, b]) => `<li><span class="pill ${c}">${esc(l)}</span><span><b>${esc(t)}</b><span class="why">${esc(w)}</span></span>${b || '<span></span>'}</li>`).join('');
+
+  $('inbox').innerHTML = S.demandes.slice().sort((a, b) => (a.statut === 'Traité') - (b.statut === 'Traité') || b.recu.localeCompare(a.recu)).map(d => `<li class="${cur && cur.id === d.id ? 'sel' : ''}"><span><span class="row" style="gap:6px"><span class="pill ${d.canal === 'Email' ? 's-info' : 's-surv'}">${esc(d.canal)}</span><b>${esc(d.contact)}</b><span class="why">${esc(ago(d.recu))}</span>${d.statut === 'Traité' ? '<span class="pill s-OK">Traité</span>' : d.reponse ? '<span class="pill s-info">Réponse préparée par n8n</span>' : ''}</span><span class="ex">${esc(d.message)}</span></span><button class="sm${d.statut === 'Traité' ? '' : ' main'}" data-open="${esc(d.id)}">${d.statut === 'Traité' ? 'Revoir' : 'Traiter'}</button></li>`).join('') || '<li>Aucun message.</li>';
+
+  renderPlan(); renderResas(); renderApres(); renderUtils(); renderMsgs(); renderRegles();
+}
+
+function ventPill(v) {
+  if (!v) return '<span class="pill s-info">pas de prévision</span>';
+  const mn = Math.min(...S.R.offres.map(o => o.vent_min)), mx = Math.max(...S.R.offres.map(o => o.vent_max));
+  const c = v.nds < mn ? 's-remp' : v.nds > mx ? 's-immo' : 's-OK', t = v.nds < mn ? 'trop faible' : v.nds > mx ? 'trop fort' : 'ok';
+  return `<span class="pill ${c}">${v.nds} nds ${esc(v.dir)} · ${t}</span>`;
+}
+function renderPlan() {
+  const h = ['<div class="h col"></div>', ...S.R.creneaux.map(c => `<div class="h col">${esc(c.label)}</div>`)];
+  for (let j = 0; j < 7; j++) {
+    const day = J(j); h.push(`<div class="h"><b>${esc(j === 0 ? 'Aujourd\'hui' : j === 1 ? 'Demain' : frD(day))}</b></div>`);
+    for (const c of S.R.creneaux) {
+      const rs = S.resas.filter(r => aMemeCreneau(r, day, c.code)), pris = new Set(rs.flatMap(r => aList(r.moniteur))), libres = S.R.moniteurs.filter(m => !pris.has(m));
+      h.push(`<div class="c" data-l="${esc(frD(day) + ' · ' + c.label)}">${ventPill(aVent(S.vent, day, c.code))}${rs.map(r => `<div class="r"><span class="pill ${r.statut === 'Proposé' ? 's-surv' : r.statut === 'Terminé' ? 's-info' : 's-OK'}">${esc(r.statut)}</span> <b>${esc(r.moniteur)}</b> · ${esc(r.client)}<div class="why">${esc(offre(r.offre)?.nom || r.offre)} · ${esc(r.matos.replace(/,/g, ', '))}</div></div>`).join('')}<span class="why">${libres.length ? 'Libre : ' + esc(libres.join(', ')) : 'Complet'}</span></div>`);
+    }
+  }
+  $('plan').innerHTML = h.join('');
+}
+function renderResas() {
+  const L = S.resas.slice().sort((a, b) => b.date.localeCompare(a.date) || a.creneau.localeCompare(b.creneau));
+  $('tb-resas').innerHTML = L.map(r => `<tr${r.resa === lastResa ? ' class="flash"' : ''}><td style="white-space:nowrap">${esc(frD(r.date))}<div class="why">${esc(crLabel(r.creneau))}</div></td><td><b>${esc(r.resa)}</b></td><td>${esc(r.client)}<div class="why">${esc(r.canal)} · ${esc(r.contact)} · ${esc(LANGS[r.langue] || r.langue)}</div></td><td>${esc(offre(r.offre)?.nom || r.offre)}<div class="why">${esc(r.participants)}</div></td><td>${esc(r.moniteur)}</td><td>${esc(r.matos.replace(/,/g, ', '))}</td><td class="n">${eur(aNum(r.prix_total) || 0)}<div class="why">acompte ${eur(aNum(r.acompte) || 0)}</div></td><td><span class="pill ${r.statut === 'Proposé' ? 's-surv' : r.statut === 'Terminé' ? 's-info' : /annul/i.test(r.statut) ? 's-remp' : 's-OK'}">${esc(r.statut)}</span>${r.statut === 'Proposé' ? `<div class="row" style="margin-top:6px;gap:6px"><button class="sm" data-confirm="${esc(r.resa)}">Acompte reçu</button><button class="sm" data-cancel="${esc(r.resa)}">Annuler</button></div>` : ''}${r.code ? `<div class="why">code ${esc(r.code)}</div>` : ''}</td></tr>`).join('') || '<tr><td colspan="8">Aucune réservation.</td></tr>';
+}
+function renderApres() {
+  const L = aCloturer();
+  $('apres-list').innerHTML = L.length ? `<ul class="todo">${L.map(r => { const fini = finCours(r) <= new Date(); return `<li><span class="pill ${fini ? 's-remp' : 's-info'}">${fini ? 'Terminé' : 'Aujourd\'hui'}</span><span><b>${esc(r.client)} · ${esc(frD(r.date))} ${esc(crLabel(r.creneau))}</b><span class="why">${esc(offre(r.offre)?.nom || r.offre)} avec ${esc(r.moniteur)} · ${esc(r.matos.replace(/,/g, ', '))}${fini ? '' : ' · pas encore fini, on peut quand même le clôturer pour la démo'}</span></span><button class="sm main" data-close="${esc(r.resa)}">Clôturer</button></li>`; }).join('')}</ul>` : '<p>Aucun cours à clôturer. Les cours confirmés apparaissent ici le jour J.</p>';
+}
+function renderUtils() {
+  const by = {};
+  S.utils.forEach(u => { const k = u.id; by[k] = by[k] || {n: 0, h: 0}; by[k].n++; by[k].h += aNum(u.heures) || 0; });
+  $('tb-usum').innerHTML = Object.entries(by).sort((a, b) => b[1].h - a[1].h).map(([id, v]) => `<tr${S.utils.some(u => u.id === id && u.resa === lastResa) ? ' class="flash"' : ''}><td><b>${esc(id)}</b><div class="why">${esc(S.parc.find(p => p.id === id)?.designation || '')}</div></td><td class="n">${v.n}</td><td class="n">${String(v.h).replace('.', ',')} h</td></tr>`).join('') || '<tr><td colspan="3">Rien encore.</td></tr>';
+  $('tb-utils').innerHTML = S.utils.slice().reverse().map(u => `<tr${u.resa === lastResa ? ' class="flash"' : ''}><td style="white-space:nowrap">${esc(frD(u.date))}</td><td><b>${esc(u.id)}</b></td><td>${esc(u.resa)}<div class="why">${esc(u.client)}</div></td><td class="n">${esc(u.heures)} h</td></tr>`).join('');
+}
+function renderMsgs() {
+  $('tb-msgs').innerHTML = S.msgs.slice().reverse().map(m => `<tr${m.resa && m.resa === lastResa ? ' class="flash"' : ''}><td style="white-space:nowrap">${esc(frD(m.date))}</td><td>${esc(m.contact)}<div class="why">${esc(m.canal)}${m.resa ? ' · ' + esc(m.resa) : ''}</div></td><td>${esc(m.type)}</td><td style="white-space:pre-line">${esc(m.texte)}</td><td><span class="pill s-info">${esc(m.statut)}</span></td></tr>`).join('') || '<tr><td colspan="5">Aucun message envoyé.</td></tr>';
+}
+function renderRegles() {
+  const R = S.R;
+  $('rules').innerHTML = [
+    `<b>Vent</b> : le créneau tient si le vent prévu est dans la plage du cours (tableau ci-dessus). Sinon l'Accueil propose un autre créneau. ${esc(R.annulation)}`,
+    `<b>Moniteurs</b> : ${esc(R.moniteurs.join(' et '))}, un groupe chacun par créneau. Au-delà du nombre d'élèves max, il faut un deuxième moniteur.`,
+    `<b>Âge et poids</b> : en dessous du minimum, pas de réservation. Si un autre cours est possible (ex. wingfoil dès ${offre('wing-init')?.age_min ?? '?'} ans), l'Accueil le propose.`,
+    `<b>Matos</b> : la taille est choisie selon le poids et le vent prévu (tableaux de départ inventés, à caler avec les moniteurs). L'Accueil exclut les pièces immobilisées par le Gréeur et celles déjà réservées sur le créneau, prend la taille la plus proche si l'idéale manque, et signale les pièces « à remplacer » pour contrôle. Barres et harnais ne sont pas comptés dans la démo.`,
+    `<b>Prix</b> : prix par personne × participants. Acompte de ${R.acompte_pct} % pour bloquer le créneau, par lien de paiement (fictif dans la démo).`,
+    `<b>Après le cours</b> : une ligne Utilisations par pièce sortie (durée du cours), puis un message avec l'album photo, le lien d'avis Google et un code de −${R.reduction.pct} % valable ${R.reduction.validite_mois} mois. Le lien d'avis et les photos sont à fournir par l'école.`,
+  ].map(t => `<li style="margin-bottom:8px">${t}</li>`).join('');
+}
+function regleForm() {
+  const R = S.R;
+  $('tb-offres').innerHTML = R.offres.map((o, i) => `<tr><td><b>${esc(o.nom)}</b><div class="why">${o.duree_h} h · ${esc(o.matos.map(m => m.categorie).join(' + '))}</div></td>${['prix', 'max_eleves', 'age_min', 'vent_min', 'vent_max'].map(k => `<td class="n"><input type="number" min="0" data-o="${i}" data-k="${k}" value="${o[k]}" aria-label="${esc(o.nom + ' ' + k)}" style="width:6em;padding:6px 8px;text-align:right"></td>`).join('')}</tr>`).join('');
+  $('r-form').innerHTML = [['acompte_pct', 'Acompte (% du prix)', R.acompte_pct], ['reduction.pct', 'Réduction prochaine session (%)', R.reduction.pct], ['lien_avis', 'Lien d\'avis Google de l\'école', R.lien_avis]]
+    .map(([k, l, v]) => `<div><label for="r-${k}">${l}</label><input id="r-${k}" data-r="${k}" value="${esc(v)}"${k === 'lien_avis' ? '' : ' type="number" min="0"'}></div>`).join('');
+}
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.o != null) { const v = parseFloat(t.value); if (!isNaN(v)) { S.R.offres[+t.dataset.o][t.dataset.k] = v; render(); } }
+  else if (t.dataset.r) { const k = t.dataset.r, v = k === 'lien_avis' ? t.value.trim() : parseFloat(t.value); if (k !== 'lien_avis' && isNaN(v)) return; if (k === 'reduction.pct') S.R.reduction.pct = v; else S.R[k] = v; render(); }
+});
+
+/* ---------- traitement d'une demande ---------- */
+function parseJSON(t) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b < a) throw new Error('pas de JSON'); return JSON.parse(t.slice(a, b + 1)); }
+const days = () => aJours(TODAY);
+
+async function openDemande(id) {
+  const d = S.demandes.find(x => x.id === id); if (!d) return;
+  cur = {id, d, req: null, prop: null, choix: null};
+  render(); $('toast').classList.add('hide');
+  const w = $('work'); w.classList.remove('hide');
+  w.innerHTML = `<div class="step"><h3><i>1</i>Le message</h3><p class="note" style="margin:6px 0">${esc(d.canal)} · ${esc(d.contact)} · ${esc(ago(d.recu))}</p><p class="bubble" style="margin:0">${esc(d.message)}</p>${d.proposition ? `<p class="note" style="margin:8px 0 0">Proposition de n8n : ${esc(d.proposition)}</p>` : ''}</div>
+<div class="step" id="w-req"><h3><i>2</i>Ce que l'Accueil a compris</h3><p class="note" id="w-ai">Lecture du message…</p></div>
+<div class="step hide" id="w-chk"></div><div class="step hide" id="w-rep"></div>`;
+  w.scrollIntoView({behavior: 'smooth', block: 'start'});
+  let j = null;
+  if (sample) {
+    try { j = parseJSON((await sample(aPromptLecture(S.R, TODAY, d.message), {modelTier: 'quick', cache: false})).text); }
+    catch (e) { $('w-ai').textContent = e && e.code === 'rate_limited' ? 'Trop de demandes d\'un coup : complète la fiche à la main ou réessaie.' : 'Je n\'ai pas pu lire ce message : complète la fiche à la main.'; }
+  } else $('w-ai').textContent = 'Lecture IA indisponible dans cette vue : complète la fiche à la main.';
+  if (cur.id !== id) return;
+  cur.req = aNormReq(j, d, S.R, TODAY);
+  reqForm(j ? 'Lu par l\'IA. Corrige si besoin : la vérification se met à jour.' : null);
+}
+
+function reqForm(head) {
+  const q = cur.req, R = S.R;
+  $('w-req').innerHTML = `<h3><i>2</i>Ce que l'Accueil a compris</h3>${head ? `<p class="note" style="margin:6px 0">${esc(head)}</p>` : ''}${q.resume ? `<p style="margin:6px 0">${esc(q.resume)}</p>` : ''}
+<div class="grid2" style="margin-top:8px">
+<div><label for="q-offre">Cours</label><select id="q-offre">${R.offres.map(o => `<option value="${o.code}"${o.code === q.offre ? ' selected' : ''}>${esc(o.nom)}</option>`).join('')}<option value="autre"${q.offre === 'autre' ? ' selected' : ''}>Autre demande (à l'équipe)</option></select></div>
+<div><label for="q-langue">Langue de la réponse</label><select id="q-langue">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}"${k === q.langue ? ' selected' : ''}>${v}</option>`).join('')}${LANGS[q.langue] ? '' : `<option value="${esc(q.langue)}" selected>${esc(q.langue)}</option>`}</select></div>
+<div><label for="q-date">Jour souhaité</label><select id="q-date"><option value="">Pas précisé</option>${days().map((x, i) => `<option value="${x}"${x === q.date ? ' selected' : ''}>${i === 0 ? 'Aujourd\'hui' : i === 1 ? 'Demain' : esc(frLong(x))}</option>`).join('')}</select></div>
+<div><label for="q-moment">Moment</label><select id="q-moment"><option value="">Pas précisé</option>${R.creneaux.map(c => `<option value="${c.code}"${c.code === q.moment ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select></div>
+</div>
+<label style="margin-top:12px">Participants</label>
+<div id="q-parts">${q.participants.map((p, i) => `<div class="part"><div><label for="p-n${i}" class="hide">Prénom</label><input id="p-n${i}" data-p="${i}" data-f="prenom" placeholder="Prénom" value="${esc(p.prenom)}"></div><div><input data-p="${i}" data-f="poids" type="number" min="15" max="150" placeholder="Poids kg" aria-label="Poids en kg" value="${p.poids ?? ''}"></div><div><input data-p="${i}" data-f="age" type="number" min="3" max="99" placeholder="Âge" aria-label="Âge" value="${p.age ?? ''}"></div><button class="sm" data-rm="${i}" aria-label="Retirer">×</button></div>`).join('')}</div>
+<button class="sm" id="q-add" style="margin-top:8px">+ participant</button>
+${q.question ? `<p class="toast" style="margin:12px 0 0">Autre question : ${esc(q.question)}</p>` : ''}`;
+  const sync = () => {
+    q.offre = $('q-offre').value; q.langue = $('q-langue').value; q.date = $('q-date').value; q.moment = $('q-moment').value;
+    document.querySelectorAll('#q-parts [data-p]').forEach(el => { const p = q.participants[+el.dataset.p], f = el.dataset.f; p[f] = f === 'prenom' ? el.value : aNum(el.value); });
+    check();
+  };
+  $('w-req').oninput = sync; $('w-req').onchange = sync;
+  $('q-add').onclick = () => { sync(); q.participants.push({prenom: '', poids: null, age: null}); reqForm(head); };
+  $('w-req').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { sync(); if (q.participants.length > 1) q.participants.splice(+b.dataset.rm, 1); reqForm(head); });
+  check();
+}
+
+function check() {
+  const q = cur.req, box = $('w-chk'); box.classList.remove('hide');
+  if (q.offre === 'autre') {
+    cur.prop = null; cur.choix = null;
+    box.innerHTML = `<h3><i>3</i>Vérification</h3><p>Demande hors des cours proposés : l'Accueil ne réserve rien, il répond qu'un membre de l'équipe revient vers la personne et la note est transmise à l'équipe.</p>`;
+    return reply();
+  }
+  const P = aProposer({...q, nb: q.participants.length}, ctx()); cur.prop = P;
+  const all = [...P.demandes.filter(e => e.ok), ...P.alternatives];
+  if (P.autre) all.push({...P.autre.retenu, _offre: P.autre.offre.code});
+  if (!cur.choix || !all.some(e => key(e) === cur.choix)) cur.choix = all[0] ? key(all[0]) : null;
+  const o = offre(q.offre), first = P.demandes.find(e => !e.ok);
+  const ck = (e) => {
+    const L = [];
+    L.push(e.vent ? (e.bloquant.some(b => /vent/.test(b)) ? ['n', `Vent ${e.vent.nds} nds : hors plage`] : ['y', `Vent prévu ${e.vent.nds} nds ${e.vent.dir}`]) : ['n', 'Pas de prévision de vent']);
+    L.push(e.moniteurs.length ? ['y', `Moniteur libre : ${e.moniteurs.join(', ')}`] : ['n', 'Aucun moniteur libre']);
+    e.matos.forEach(m => L.push([m.detail.some(t => /au lieu|contrôler/.test(t)) ? 'w' : m.ids.length ? 'y' : 'n', `${m.prenom || 'Participant'}${m.poids ? ' (' + m.poids + ' kg)' : ''} : ${m.detail.join(' + ') || 'pas de matos libre'}`]));
+    e.bloquant.filter(b => !/vent|moniteur/.test(b)).forEach(b => L.push(['n', b]));
+    e.notes.filter(n => /poids/.test(n)).forEach(n => L.push(['w', n]));
+    return `<ul class="checks">${L.map(([c, t]) => `<li><span class="${c}">${c === 'y' ? '✓' : c === 'w' ? '!' : '✗'}</span><span>${esc(t)}</span></li>`).join('')}</ul>`;
+  };
+  let h = `<h3><i>3</i>Vérification : créneau, matos, vent, conditions</h3>`;
+  if (first && !P.demandes.some(e => e.ok)) h += `<div class="opt" style="grid-template-columns:minmax(0,1fr)"><span><b>Demandé : ${esc(frLong(first.date))}, ${esc(first.label)}</b> <span class="pill s-remp">ne tient pas</span>${ck(first)}</span></div>`;
+  if (!all.length) h += `<p class="toast">Aucun créneau possible sur les 7 prochains jours avec ces conditions. La réponse le dit, sans rien réserver.</p>`;
+  h += all.map(e => { const oo = offre(e._offre || q.offre); return `<label class="opt" style="font-weight:400;color:var(--ink);font-size:15px;margin-bottom:0"><input type="radio" name="choix" value="${esc(key(e))}"${key(e) === cur.choix ? ' checked' : ''}><span><b>${esc(frLong(e.date))}, ${esc(e.label)}</b> ${P.demandes.includes(e) ? '<span class="pill s-OK">créneau demandé</span>' : e._offre ? `<span class="pill s-surv">autre cours : ${esc(oo.nom)}</span>` : '<span class="pill s-info">alternative</span>'}<div class="why">${esc(oo.nom)} · ${e.matos.length} pers. · ${eur(e.prix_total)}, acompte ${eur(e.acompte)}</div>${ck(e)}</span></label>`; }).join('');
+  box.innerHTML = h;
+  box.querySelectorAll('input[name=choix]').forEach(r => r.onchange = () => { cur.choix = r.value; reply(); });
+  reply();
+}
+const key = e => `${e._offre || ''}|${e.date}|${e.creneau}`;
+const chosen = () => { if (!cur.prop) return null; const all = [...cur.prop.demandes, ...cur.prop.alternatives, ...(cur.prop.autre ? [{...cur.prop.autre.retenu, _offre: cur.prop.autre.offre.code}] : [])]; return all.find(e => e.ok && key(e) === cur.choix) || null; };
+
+let replyTimer = null, replyGen = 0;
+function reply() {
+  const box = $('w-rep'); box.classList.remove('hide');
+  const e = chosen(), q = cur.req;
+  if (!box.querySelector('#rep')) box.innerHTML = `<h3><i>4</i>Réponse proposée</h3><p class="note" id="rep-state" style="margin:6px 0"></p><label for="rep">Message à envoyer (${esc(LANGS[q.langue] || q.langue)})</label><textarea id="rep" style="min-height:150px"></textarea>
+<div class="row" style="margin-top:12px"><button class="sail" id="rep-ok"></button><button id="rep-redo">Réécrire</button><button id="rep-close">Fermer</button></div>`;
+  $('rep-ok').textContent = e ? 'Valider : bloquer le créneau et répondre' : 'Répondre sans réserver';
+  $('rep-close').onclick = () => { $('work').classList.add('hide'); cur = null; render(); };
+  $('rep-redo').onclick = () => write(true);
+  $('rep-ok').onclick = validate;
+  clearTimeout(replyTimer); replyTimer = setTimeout(() => write(false), 800);
+}
+const facts = () => aFaits(S.R, cur.req, cur.prop, chosen());
+function template(F) {
+  const en = F.langue !== 'fr', n = F.client ? ' ' + F.client : '';
+  if (F.cas === 'hors_offre') return en ? `Hi${n}, thanks for your message! One of our team will get back to you very soon about this. — ${F.ecole}` : `Bonjour${n}, merci pour votre message ! Quelqu'un de l'équipe revient vers vous très vite à ce sujet. — ${F.ecole}`;
+  if (F.cas === 'aucun_creneau') return en ? `Hi${n}, thanks for your message! Unfortunately we have no slot that works in the next 7 days (wind or availability). We'll get back to you as soon as something opens up. — ${F.ecole}` : `Bonjour${n}, merci pour votre message ! Malheureusement aucun créneau ne fonctionne sur les 7 prochains jours (vent ou disponibilités). On revient vers vous dès que ça se libère. — ${F.ecole}`;
+  return en ? `Hi${n}, thanks for your message! We can offer: ${F.cours} (${F.duree}), ${F.quand}. Price: ${F.prix_par_personne} per person, ${F.prix_total} in total, all gear included. To hold the slot, a ${F.acompte} deposit: ${F.lien_acompte}. ${F.a_demander ? 'Could you tell us your weight so we prepare the right gear? ' : ''}See you at the ${F.lieu}! — ${F.ecole}` : `Bonjour${n}, merci pour votre message ! On vous propose : ${F.cours} (${F.duree}), ${F.quand}. Tarif : ${F.prix_par_personne} par personne, ${F.prix_total} au total, matériel fourni. Pour bloquer le créneau, un acompte de ${F.acompte} : ${F.lien_acompte}. ${F.a_demander ? 'Pouvez-vous nous donner votre poids pour préparer la bonne taille de matériel ? ' : ''}${F.meteo} À bientôt à la ${F.lieu} ! — ${F.ecole}`;
+}
+async function write(force) {
+  const F = facts(), gen = ++replyGen, ta = $('rep'); if (!ta) return;
+  if (!force && cur.d.reponse && !cur.usedPrep) { cur.usedPrep = true; ta.value = cur.d.reponse; $('rep-state').textContent = cur.d.statut === 'Traité' ? 'Réponse déjà envoyée.' : 'Réponse préparée par n8n. « Réécrire » en propose une nouvelle.'; return; }
+  if (!sample) { ta.value = template(F); $('rep-state').textContent = 'Rédaction IA indisponible ici : réponse type (français ou anglais).'; return; }
+  $('rep-state').textContent = 'L\'Accueil rédige la réponse…'; ta.value = '';
+  try {
+    const r = await sample(aPromptReponse(F, cur.d.message), {cache: false, onText: ({text}) => { if (gen === replyGen) ta.value = text; }});
+    if (gen === replyGen) { ta.value = r.text.trim(); $('rep-state').textContent = 'Rédigé à partir des faits vérifiés ci-dessus. Tu peux retoucher avant de valider.'; }
+  } catch (e) { if (gen === replyGen) { ta.value = template(F); $('rep-state').textContent = e && e.code === 'rate_limited' ? 'Trop de demandes : réponse type à la place.' : 'Rédaction IA impossible cette fois : réponse type à la place.'; } }
+}
+
+async function validate() {
+  const e = chosen(), q = cur.req, d = cur.d, txt = $('rep').value.trim();
+  if (!txt) { $('rep').focus(); return; }
+  let resa = null;
+  if (e) {
+    const n = Math.max(100, ...S.resas.map(r => parseInt(String(r.resa).replace(/\D/g, '')) || 0)) + 1;
+    resa = {resa: 'R-' + n, date: e.date, creneau: e.creneau, offre: e._offre || q.offre, client: q.client || d.contact, canal: d.canal, contact: d.contact, langue: q.langue, nb: e.matos.length,
+      participants: e.matos.map((m, i) => `${m.prenom || 'Participant ' + (i + 1)}${m.poids ? ' ' + m.poids + ' kg' : ''}`).join(' · '), moniteur: e.moniteurs.join(','), matos: e.matos.flatMap(m => m.ids).join(','),
+      prix_total: e.prix_total, acompte: e.acompte, statut: 'Proposé', code: ''};
+    S.resas.push(resa); lastResa = resa.resa;
+  }
+  const msg = {date: J(0), resa: resa ? resa.resa : '', canal: d.canal, contact: d.contact, type: q.offre === 'autre' ? 'Réponse (à suivre par l\'équipe)' : 'Réponse à la demande', texte: txt, statut: 'Envoi simulé'};
+  S.msgs.push(msg); d.statut = 'Traité'; d.reponse = txt; d.resume = q.resume;
+  const id = cur.id; cur = null; $('work').classList.add('hide'); render();
+  const t = $('toast'); t.classList.remove('hide');
+  t.innerHTML = resa ? `Créneau bloqué : <b>${esc(resa.resa)}</b>, ${esc(frLong(resa.date))} ${esc(crLabel(resa.creneau))} avec ${esc(resa.moniteur)}, matos ${esc(resa.matos.replace(/,/g, ', '))}. En attente d'acompte (${eur(resa.acompte)}). Réponse envoyée par ${esc(d.canal)} <span class="note">(envoi simulé : ${d.canal === 'Email' ? 'Gmail' : 'Instagram'} pas encore branché)</span>.` : `Réponse envoyée par ${esc(d.canal)} <span class="note">(envoi simulé)</span>. Rien n'est réservé.`;
+  if (src === 'sheet') {
+    if (resa) await sheetAppend('Réservations', RESA_COLS, resa, 'Réservation écrite dans la Google Sheet.');
+    await sheetAppend('Messages', MSG_COLS, msg, 'Message noté dans la Google Sheet.');
+    if (d._row) await sheetPut(`Demandes!G${d._row}:I${d._row}`, [['Traité', d.resume, d.reponse]], 'Demande marquée traitée.');
+  }
+  showTab(resa ? 'plan' : 'msgs');
+}
+
+/* ---------- acompte, annulation, clôture ---------- */
+async function setStatut(id, st) {
+  const r = S.resas.find(x => x.resa === id); if (!r) return;
+  r.statut = st; lastResa = id; render();
+  if (src === 'sheet' && r._row) await sheetPut(`'Réservations'!O${r._row}`, [[st]], `Statut « ${st} » écrit dans la Google Sheet.`);
+}
+function openClose(id) {
+  const r = S.resas.find(x => x.resa === id); if (!r) return;
+  showTab('apres');
+  const box = $('apres-form'), code = aCode(S.R, r.client);
+  box.innerHTML = `<div class="panel" style="margin-top:16px;box-shadow:none;border:1.5px solid var(--line)"><h3>Clôturer ${esc(r.resa)} · ${esc(r.client)}</h3>
+<div class="grid2" style="margin-top:12px"><div><label for="c-matos">Matos sorti (IDs, modifiable)</label><input id="c-matos" value="${esc(r.matos)}"></div><div><label for="c-album">Lien de l'album photo de la séance</label><input id="c-album" value="${esc(S.R.lien_album_defaut)}"></div></div>
+<p class="why" id="c-eff"></p>
+<label for="c-msg">Message envoyé à ${esc(r.contact)} (${esc(LANGS[r.langue] || r.langue)})</label><textarea id="c-msg" style="min-height:130px"></textarea>
+<div class="row" style="margin-top:12px"><button class="sail" id="c-ok">Clôturer et envoyer</button><button id="c-x">Annuler</button></div></div>`;
+  const upd = (msgToo) => {
+    const ids = aList($('c-matos').value), off = offre(r.offre), h = off ? off.duree_h : 2;
+    const unk = ids.filter(i => !S.parc.some(p => p.id === i));
+    $('c-eff').textContent = `Utilisations : ${ids.length} ligne(s) de ${h} h (${ids.join(', ') || 'aucune'}).` + (unk.length ? ` Attention, ID inconnu(s) dans le parc : ${unk.join(', ')}.` : '') + ` Code de réduction : ${code}.`;
+    if (msgToo) $('c-msg').value = aMessageApres(S.R, {...r, code}, $('c-album').value.trim());
+  };
+  $('c-matos').oninput = () => upd(false); $('c-album').oninput = () => upd(true); upd(true);
+  $('c-x').onclick = () => { box.innerHTML = ''; };
+  $('c-ok').onclick = async () => {
+    const ids = aList($('c-matos').value), U = aUtilisations(S.R, {...r, matos: ids.join(',')});
+    S.utils.push(...U); r.matos = ids.join(','); r.statut = 'Terminé'; r.code = code; lastResa = r.resa;
+    const m = {date: J(0), resa: r.resa, canal: r.canal, contact: r.contact, type: 'Après le cours', texte: $('c-msg').value.trim(), statut: 'Envoi simulé'};
+    S.msgs.push(m); box.innerHTML = `<p class="toast">Clôturé. ${U.length} ligne(s) ajoutée(s) aux Utilisations, message envoyé à ${esc(r.contact)} avec les photos, le lien d'avis et le code ${esc(code)} <span class="note">(envoi simulé)</span>.</p>`;
+    render();
+    if (src === 'sheet') {
+      for (const u of U) await sheetAppend('Utilisations', UTIL_COLS, u, 'Utilisations écrites dans la Google Sheet.');
+      await sheetAppend('Messages', MSG_COLS, m, 'Message noté dans la Google Sheet.');
+      if (r._row) await sheetPut(`'Réservations'!L${r._row}:P${r._row}`, [[r.matos, r.prix_total, r.acompte, 'Terminé', code]], 'Réservation passée à « Terminé ».');
+    }
+  };
+  box.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.open) openDemande(b.dataset.open);
+  else if (b.dataset.confirm) setStatut(b.dataset.confirm, 'Confirmé');
+  else if (b.dataset.cancel) setStatut(b.dataset.cancel, 'Annulé');
+  else if (b.dataset.close) openClose(b.dataset.close);
+});
+$('t-send').onclick = async () => {
+  const m = $('t-msg').value.trim(); if (!m) { $('t-msg').focus(); return; }
+  const n = Math.max(200, ...S.demandes.map(d => parseInt(String(d.id).replace(/\D/g, '')) || 0)) + 1;
+  const d = {id: 'D-' + n, recu: new Date().toISOString(), canal: $('t-canal').value, contact: $('t-contact').value.trim() || 'anonyme', langue: '', message: m, statut: 'Nouveau', resume: '', reponse: ''};
+  S.demandes.push(d); $('t-msg').value = '';
+  if (src === 'sheet') await sheetAppend('Demandes', DEM_COLS, d, 'Message noté dans l\'onglet Demandes.');
+  openDemande(d.id);
+};
+
+/* ---------- onglets ---------- */
+const showTab = v => {
+  document.querySelectorAll('.tabs [data-v]').forEach(x => x.setAttribute('aria-selected', x.dataset.v === v));
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('hide', el.id !== 'v-' + v));
+};
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) showTab(b.dataset.v); });
+
+/* ---------- Google Sheet (connecteur Google Sheets de la personne qui ouvre la page) ---------- */
+const GS = 'Google Sheets', SHEETS = /*__SHEETS__*/null;
+const RESA_COLS = ['resa', 'date', 'creneau', 'offre', 'client', 'canal', 'contact', 'langue', 'nb', 'participants', 'moniteur', 'matos', 'prix_total', 'acompte', 'statut', 'code'];
+const UTIL_COLS = ['date', 'resa', 'id', 'heures', 'client'];
+const MSG_COLS = ['date', 'resa', 'canal', 'contact', 'type', 'texte', 'statut'];
+const DEM_COLS = ['id', 'recu', 'canal', 'contact', 'langue', 'message', 'statut', 'resume', 'reponse', 'proposition'];
+const VENT_COLS = ['date', 'matin', 'midi', 'aprem', 'dir', 'source'];
+// onglet : [clé dans S, colonnes, fichier]
+const TABS = {'Vent': ['vent', VENT_COLS, 'reservations'], 'Demandes': ['demandes', DEM_COLS, 'reservations'], 'Réservations': ['resas', RESA_COLS, 'reservations'], 'Messages': ['msgs', MSG_COLS, 'reservations'], 'Utilisations': ['utils', UTIL_COLS, 'matos']};
+const ids = {matos: SHEETS.matos, reservations: SHEETS.reservations};
+try { ids.matos = localStorage.getItem('mk-sheet-matos') || ids.matos; ids.reservations = localStorage.getItem('mk-sheet-reservations') || ids.reservations; } catch {}
+$('sheet-m').value = ids.matos; $('sheet-r').value = ids.reservations;
+const SRC = {demo: ['Données de démo', 's-OK'], sheet: ['Google Sheet', 's-OK']};
+function setSrc(v) { src = v; $('src').textContent = SRC[v][0]; $('src').className = 'pill ' + SRC[v][1]; $('fict').classList.toggle('hide', v === 'sheet'); $('sheet-refresh').classList.toggle('hide', v !== 'sheet'); }
+function gsErr(e) {
+  const c = e && e.code;
+  if (c === 'needs_reauth') return 'Ta connexion Google Sheets a expiré : reconnecte-la dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'server_not_connected' || c === 'selection_required') return 'Ajoute (ou choisis) le connecteur Google Sheets dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'not_in_manifest' || c === 'approval_required' || c === 'blocked_by_policy') return 'Cette page n\'a pas l\'autorisation d\'utiliser Google Sheets. Recharge la page et accepte la demande.';
+  if (c === 'tool_error') return 'Google Sheets a refusé : ' + String(e.message || '').slice(0, 160);
+  return 'Google Sheets ne répond pas pour l\'instant. Réessaie dans un moment.';
+}
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z_]/g, '');
+const gsGet = async (base, range) => { const r = await mcp.callTool(GS, 'get_values', {spreadsheetId: ids[base], range}, {cache: false}); const p = r.payload || {}; return p.values || (p.content && p.content.values) || []; };
+const gsPut = (base, range, values) => mcp.callTool(GS, 'update_values', {spreadsheetId: ids[base], range, values}, {cache: false});
+const rowsToObjs = v => { const h = (v[0] || []).map(norm); return v.slice(1).map((r, i) => { const o = {_row: i + 2}; h.forEach((k, j) => { o[k] = r[j] ?? ''; }); return o; }); };
+const toIso = v => { const d = aDate(v); return d ? aIso(d) : String(v || '').slice(0, 10); };
+const counts = {};
+async function sheetPut(range, values, ok, base = 'reservations') {
+  try { await gsPut(base, range, values); note(ok); } catch (e) { note('Pas enregistré dans la Google Sheet. ' + gsErr(e) + ' Clique sur « Recharger » pour revoir l\'état réel de la feuille.'); }
+}
+async function sheetAppend(tab, cols, obj, ok) {
+  const row = (counts[tab] = (counts[tab] || 1) + 1); obj._row = row;
+  const q = /[^A-Za-z]/.test(tab) ? `'${tab}'` : tab, last = String.fromCharCode(64 + cols.length);
+  await sheetPut(`${q}!A${row}:${last}${row}`, [cols.map(c => (c === 'date' || c === 'recu') && obj[c] ? "'" + obj[c] : obj[c] ?? '')], ok, TABS[tab][2]);
+}
+function note(msg) { const t = $('toast'); t.classList.remove('hide'); const p = document.createElement('div'); p.className = 'note'; p.style.marginTop = '6px'; p.textContent = msg; t.appendChild(p); }
+async function loadSheet() {
+  const clean = el => el.value.trim().replace(/^.*\/d\/([^/]+).*$/, '$1');
+  if (!clean($('sheet-m'))) { $('sheet-m').focus(); return; } if (!clean($('sheet-r'))) { $('sheet-r').focus(); return; }
+  ids.matos = clean($('sheet-m')); ids.reservations = clean($('sheet-r'));
+  try { localStorage.setItem('mk-sheet-matos', ids.matos); localStorage.setItem('mk-sheet-reservations', ids.reservations); } catch {}
+  $('sheet-load').disabled = true; $('sheet-state').textContent = 'Lecture de la Google Sheet…';
+  try {
+    const P = rowsToObjs(await gsGet('matos', 'Parc!A:E')), G = rowsToObjs(await gsGet('matos', "'Dégâts'!A:H"));
+    const parc = P.filter(x => x.id).map(x => ({id: String(x.id).trim(), categorie: String(x.categorie).trim(), designation: String(x.designation).trim(), date_achat: toIso(x.date_achat), prix_achat: aNum(x.prix_achat) || 0}));
+    if (!parc.length) throw {code: 'tool_error', message: 'onglet Parc vide ou introuvable'};
+    const next = {...S, parc, degats: G.filter(x => x.id).map(x => ({date: toIso(x.date), id: String(x.id).trim(), type: x.type, cout: aNum(x.cout), statut: x.statut || 'Réparé', immobilise: x.immobilise}))};
+    const missing = [];
+    for (const [tab, [k, cols, base]] of Object.entries(TABS)) {
+      let v = [];
+      try { v = await gsGet(base, `${/[^A-Za-z]/.test(tab) ? `'${tab}'` : tab}!A:${String.fromCharCode(64 + cols.length)}`); } catch (e) { if (e && e.code !== 'tool_error') throw e; missing.push(tab); }
+      counts[tab] = Math.max(1, v.length);
+      next[k] = rowsToObjs(v).filter(o => o[cols[0]]).map(o => { const r = {_row: o._row}; cols.forEach(c => { r[c] = String(o[c] ?? '').trim(); }); if ('date' in r) r.date = toIso(r.date); return r; });
+    }
+    next.vent = next.vent.map(v => ({...v, matin: aNum(v.matin), midi: aNum(v.midi), aprem: aNum(v.aprem)}));
+    next.resas = next.resas.map(r => ({...r, nb: aNum(r.nb) || 1, prix_total: aNum(r.prix_total) || 0, acompte: aNum(r.acompte) || 0}));
+    next.demandes = next.demandes.map(d => ({...d, recu: d.recu || new Date().toISOString(), statut: d.statut || 'Nouveau'}));
+    next.utils = next.utils.map(u => ({...u, heures: aNum(u.heures) || 0}));
+    S = next; cur = null; lastResa = null; $('work').classList.add('hide'); setSrc('sheet'); render();
+    $('sheet-state').textContent = `Chargé : ${parc.length} pièces, ${S.resas.length} réservations, ${S.demandes.length} demandes, ${S.vent.length} jours de vent.` + (missing.length ? ` Onglet(s) absent(s) : ${missing.join(', ')}.` : '') + ' Ce que tu fais ici est écrit dans la feuille.';
+  } catch (e) { $('sheet-state').textContent = gsErr(e); }
+  finally { $('sheet-load').disabled = false; }
+}
+$('sheet-load').addEventListener('click', loadSheet);
+$('sheet-refresh').addEventListener('click', loadSheet);
+
+/* ---------- Excel ---------- */
+async function dl(base) {
+  if (!window.XLSX) { $('xls-state').textContent = 'La bibliothèque Excel charge encore, réessaie dans une seconde.'; return; }
+  if (!downloads) { $('xls-state').textContent = 'Le téléchargement n\'est pas disponible dans cette vue.'; return; }
+  const wb = XLSX.utils.book_new(), add = (name, cols, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([cols, ...rows.map(r => cols.map(c => r[c] ?? ''))]), name);
+  if (base === 'matos') {
+    add('Parc', ['id', 'categorie', 'designation', 'date_achat', 'prix_achat'], S.parc);
+    add('Dégâts', ['date', 'id', 'type', 'description', 'gravite', 'cout', 'statut', 'immobilise'], S.degats.map(d => ({...d, immobilise: aYes(d.immobilise) ? 'oui' : 'non'})));
+  }
+  for (const [tab, [k, cols, b]] of Object.entries(TABS)) if (b === base) add(tab, cols, S[k]);
+  try { await downloads.save({filename: `maximum-kite-${base}.xlsx`, data: new Blob([XLSX.write(wb, {bookType: 'xlsx', type: 'array'})])}); $('xls-state').textContent = 'Fichier téléchargé.'; }
+  catch (e) { $('xls-state').textContent = e && e.code === 'declined' ? 'Téléchargement annulé.' : 'Le téléchargement n\'a pas abouti.'; }
+}
+$('dl-m').addEventListener('click', () => dl('matos'));
+$('dl-r').addEventListener('click', () => dl('reservations'));
+
+$('reset').addEventListener('click', () => { S = fromDemo(); cur = null; lastResa = null; setSrc('demo'); $('work').classList.add('hide'); $('toast').classList.add('hide'); $('apres-form').innerHTML = ''; regleForm(); render(); });
+
+regleForm(); render();
+const hideDl = () => { $('dl-m').classList.add('hide'); $('dl-r').classList.add('hide'); };
+const boot = tries => {
+  if (window.claude && claude.use) {
+    claude.use('sample').then(s => { sample = s; }, () => {});
+    claude.use('mcp').then(m => { mcp = m; if (!m) { $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; } }, () => $('sheet-box').classList.add('hide'));
+    claude.use('downloads').then(d => { downloads = d; if (!d) hideDl(); }, hideDl);
+  } else if (tries > 0) setTimeout(() => boot(tries - 1), 500);
+  else { hideDl(); $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; }
+};
+boot(6);
+}
+</script>
+</body>
+</html>

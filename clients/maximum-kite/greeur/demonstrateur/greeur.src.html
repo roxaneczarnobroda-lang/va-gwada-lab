@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Gréeur — démo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: atelier de gréement, direct, tutoiement, chaque chiffre dit d'où il vient
+   IDEA: la fiche d'atelier d'une école de kite — étiquettes de matos, carnet de réparations
+   PICTURE: l'outil lui-même : un dégât dicté en une phrase devient une ligne du fichier
+   COLOUR and TYPE: lagon profond, jaune voile, corail alerte ; Archivo large + condensé
+   LAYOUT: bandeau lagon avec le signalement + l'état du parc, puis onglets de travail */
+:root{color-scheme:light dark;
+--bg:light-dark(#f2f6f6,#0b1d21);--card:light-dark(#ffffff,#122a30);--ink:light-dark(#0d2429,#e6f0f0);
+--soft:light-dark(#4b6267,#9fb7ba);--line:light-dark(#d5e2e3,#24434a);
+--lagon:#0c4a55;--lagon2:light-dark(#0f6170,#5cc2cf);--sail:#f5c518;--coral:light-dark(#d9402a,#ff7a63);
+--ok:light-dark(#1f7a4d,#5fd39a);--warn:light-dark(#9a6a00,#f5c518)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-weight:750;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,48px);font-stretch:85%}h2{font-size:clamp(24px,3vw,32px);font-stretch:90%}h3{font-size:18px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--lagon);color:#eef7f7}
+.top .lead{color:#bfe0e3;max-width:60ch;margin:10px 0 0}
+.note{font-size:13px;color:var(--soft)}.top .note{color:#9fcfd4}.top .panel .note{color:var(--soft)}
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;margin-top:28px}
+@media(max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--card);color:var(--ink);border-radius:18px;padding:22px;box-shadow:0 18px 40px -28px rgba(0,0,0,.6)}
+textarea,input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+textarea{min-height:96px;resize:vertical}
+:focus-visible{outline:3px solid var(--sail);outline-offset:2px}
+button{font:600 15px Archivo,sans-serif;min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--lagon2);background:transparent;color:var(--lagon2);cursor:pointer}
+button.main{background:var(--lagon);border-color:var(--lagon);color:#fff}
+button.sail{background:var(--sail);border-color:var(--sail);color:#1b1500}
+button:disabled{opacity:.5;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{min-height:36px;border-radius:14px;font-size:13px;font-weight:500;border-color:var(--line);color:var(--soft);text-align:left;padding:6px 12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:600px){.grid2{grid-template-columns:minmax(0,1fr)}}
+label{font-size:13px;font-weight:600;color:var(--soft);display:block;margin-bottom:4px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.stat{border-radius:14px;padding:12px 14px;background:var(--bg)}
+.stat b{display:block;font-size:34px;font-stretch:80%;line-height:1}
+.stat span{font-size:13px;color:var(--soft)}
+.todo{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px;font-size:15px}
+.todo li button{min-height:36px;padding:0 12px;font-size:13px}
+.todo .why{display:block}
+.bubble{background:light-dark(#e7f3ef,#183a35);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:15px;white-space:pre-line}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.s-OK{background:light-dark(#dcf2e6,#173b2a);color:var(--ok)}
+.s-surv{background:light-dark(#fdf1c7,#3a3110);color:var(--warn)}
+.s-remp{background:light-dark(#fde0da,#40201a);color:var(--coral)}
+.s-immo{background:var(--coral);color:#fff}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;border-bottom:1.5px solid var(--line)}
+nav.tabs button{flex:none;border:0;border-radius:10px 10px 0 0;color:var(--soft)}
+nav.tabs button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:inset 0 -3px 0 var(--sail)}
+.view{background:var(--card);border-radius:0 0 18px 18px;padding:22px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:13px;color:var(--soft);font-weight:600;padding:8px;border-bottom:1.5px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.flash td{animation:fl 2.4s ease-out}
+@keyframes fl{from{background-color:rgba(245,197,24,.45)}to{background-color:rgba(245,197,24,0)}}
+@media(prefers-reduced-motion:reduce){tr.flash td{animation:none}}
+.why{font-size:13px;color:var(--soft)}
+.bars{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+.bar{display:grid;grid-template-columns:8.5em minmax(0,1fr) 6.5em;gap:10px;align-items:center}
+.bar i{display:block;height:26px;border-radius:6px;background:var(--lagon2)}
+.bar i.now{background:var(--coral)}
+.bar .v{text-align:right;font-weight:700;white-space:nowrap}
+.big{font-size:clamp(36px,6vw,56px);font-weight:800;font-stretch:80%;line-height:1}
+.answer{white-space:pre-wrap;background:var(--bg);border-radius:14px;padding:14px 16px;min-height:3em}
+.toast{margin-top:12px;padding:12px 14px;border-radius:12px;background:light-dark(#fff6d6,#3a3110);font-size:15px}
+.hide{display:none!important}
+pre,.scroll{overflow-x:auto}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--soft)}.stack td:empty{display:none}.bar{grid-template-columns:6em minmax(0,1fr) 5.5em}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+
+<header class="band top">
+<div class="wrap">
+<div class="row" style="justify-content:space-between">
+<div class="row" style="gap:14px">
+<svg width="44" height="44" viewBox="0 0 48 48" aria-hidden="true"><path d="M6 22C10 9 38 9 42 22l-6 2C33 16 15 16 12 24z" fill="#f5c518"/><path d="M12 24l12 18 12-18" fill="none" stroke="#bfe0e3" stroke-width="1.5"/></svg>
+<div><h1>Le Gréeur</h1><div class="note">Agent matos · Maximum Kite · démo VA Gwada</div></div>
+</div>
+<button id="reset" style="border-color:#9fcfd4;color:#eef7f7">Revenir aux données de démo</button>
+</div>
+<p class="lead">Tout le matos de l'école sur une seule page. Un moniteur dit en une phrase ce qui est arrivé, le Gréeur l'inscrit dans le fichier, recalcule l'état du parc et met à jour ce qu'il y a à traiter.</p>
+
+<div class="hero">
+<section class="panel" aria-labelledby="t-sig">
+<h2 id="t-sig">Signaler un dégât</h2>
+<p class="why" style="margin:6px 0 10px">Écris comme tu parlerais à un collègue. Exemples :</p>
+<div class="chips" id="examples"></div>
+<label for="msg">Ce qui s'est passé</label>
+<textarea id="msg" placeholder="Ex. le 9 m récent a pris un coup sur le récif, petit trou dans le boudin d'attaque"></textarea>
+<div class="row" style="margin-top:10px">
+<button class="main" id="analyse">Analyser</button>
+<button id="manual">Saisir à la main</button>
+<span class="note" id="ai-state"></span>
+</div>
+<div id="result" class="hide" style="margin-top:18px"></div>
+<div id="toast" class="toast hide" role="status"></div>
+</section>
+
+<section class="panel" aria-labelledby="t-etat">
+<div class="row" style="justify-content:space-between"><h2 id="t-etat">À traiter aujourd'hui</h2><span class="pill s-OK" id="src">Données de démo</span></div>
+<div class="stats" id="stats"></div>
+<ul class="todo" id="todo"></ul>
+<p class="note" id="n8n-brief" style="margin:12px 0 0"></p>
+</section>
+</div>
+<p class="note" style="margin-top:16px" id="fict">Données fictives : matos, prix, dates et réparations sont inventés pour la démo.</p>
+</div>
+</header>
+
+<main class="band">
+<div class="wrap">
+<nav class="tabs" role="tablist" aria-label="Vues">
+<button role="tab" data-v="parc" aria-selected="true">Parc</button>
+<button role="tab" data-v="degats" aria-selected="false">Dégâts</button>
+<button role="tab" data-v="budget" aria-selected="false">Budget 12 mois</button>
+<button role="tab" data-v="ask" aria-selected="false">Questions au Gréeur</button>
+<button role="tab" data-v="hyp" aria-selected="false">Règles de calcul</button>
+<button role="tab" data-v="xls" aria-selected="false">Fichier Excel</button>
+</nav>
+
+<section class="view" id="v-parc"><div class="scroll"><table class="stack"><thead><tr><th>ID</th><th>Matériel</th><th class="n">Âge</th><th class="n">Réparations</th><th>État</th><th>Pourquoi</th></tr></thead><tbody id="tb-parc"></tbody></table></div></section>
+
+<section class="view hide" id="v-degats"><div class="scroll"><table class="stack"><thead><tr><th>Date</th><th>ID</th><th>Type</th><th>Description</th><th>Gravité</th><th class="n">Coût</th><th>Statut</th></tr></thead><tbody id="tb-deg"></tbody></table></div></section>
+
+<section class="view hide" id="v-budget">
+<h2>Budget de renouvellement sur 12 mois</h2>
+<div class="big" id="b-total" style="margin-top:12px"></div>
+<p class="why" id="b-sub"></p>
+<div class="bars" id="bars"></div>
+<div class="scroll"><table class="stack"><thead><tr><th>Quand</th><th>ID</th><th>Matériel</th><th>Raison</th><th class="n">Prix neuf</th><th class="n">Revente</th><th class="n">Net</th></tr></thead><tbody id="tb-bud"></tbody></table></div>
+<p class="why">Prix neuf = prix d'achat du fichier, faute de prix catalogue actuel. Revente = pourcentage fixé dans les règles de calcul. À remplacer par ses vrais prix fournisseurs.</p>
+</section>
+
+<section class="view hide" id="v-ask">
+<h2>Pose une question sur ton matos</h2>
+<p class="why">Le Gréeur répond seulement à partir du fichier. S'il n'a pas l'info, il le dit.</p>
+<div class="chips" id="qs"></div>
+<label for="q">Ta question</label>
+<textarea id="q" style="min-height:64px"></textarea>
+<div class="row" style="margin:10px 0"><button class="main" id="ask">Demander</button><span class="note" id="ask-state"></span></div>
+<div class="answer" id="answer" aria-live="polite"></div>
+</section>
+
+<section class="view hide" id="v-hyp">
+<h2>D'où viennent les chiffres</h2>
+<p class="why">Ces règles sont des hypothèses de départ, à caler avec l'école. Modifie-les : tout le parc et le budget se recalculent.</p>
+<div class="grid2" id="hyp-form" style="margin-top:14px"></div>
+<h3 style="margin-top:22px">Les règles, en clair</h3>
+<ul id="rules" style="padding-left:20px"></ul>
+</section>
+
+<section class="view hide" id="v-xls">
+<h2>Le fichier derrière l'agent</h2>
+<p>Pas d'appli à installer. Tout repose sur un fichier Excel ou Google Sheets à trois onglets : <b>Parc</b> (date et prix d'achat), <b>Dégâts</b> (le carnet de réparations), <b>Hypothèses</b> (les règles). L'école peut le remplir à la main. L'agent, lui, le tient à jour.</p>
+<div class="row" style="margin:14px 0">
+<button class="sail" id="dl">Télécharger le fichier (.xlsx)</button>
+<label class="row" style="margin:0"><span class="hide">Charger</span><input type="file" id="up" accept=".xlsx,.xls,.csv" style="max-width:320px"></label>
+</div>
+<p class="note" id="xls-state">Charge un fichier au même format pour voir l'agent tourner sur d'autres données.</p>
+<h3 style="margin-top:28px">Brancher la Google Sheet</h3>
+<p>La page lit et écrit directement dans la Google Sheet de l'école (onglets Parc, Dégâts, Brief), avec ton connecteur Google Sheets. n8n travaille sur la même feuille : ce qu'il ajoute apparaît ici.</p>
+<div id="sheet-box">
+<label for="sheet-id">ID de la Google Sheet</label>
+<input id="sheet-id" autocomplete="off" spellcheck="false">
+<div class="row" style="margin-top:10px"><button class="main" id="sheet-load">Charger la Google Sheet</button><button id="sheet-refresh" class="hide">Recharger</button></div>
+</div>
+<p class="note" id="sheet-state"></p>
+</section>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script>
+{
+const DEMO = /*__DATA__*/null;
+const clone = o => JSON.parse(JSON.stringify(o));
+let S = {hyp: clone(DEMO.hypotheses), parc: clone(DEMO.parc), degats: clone(DEMO.degats)};
+let undo = null, sample = null, downloads = null, lastAdded = null;
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur = n => Math.round(n).toLocaleString('fr-FR') + ' €';
+const D = s => { const d = new Date(s + 'T12:00:00'); return isNaN(d) ? null : d; };
+const iso = d => d.toISOString().slice(0, 10);
+const fr = d => d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+const TODAY = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); return d; })();
+const DAY = 864e5;
+const addY = (d, y) => { const r = new Date(d); r.setMonth(r.getMonth() + Math.round(y * 12)); return r; };
+const TYPES = DEMO.types_degat;
+const GRAV = ['Légère', 'Moyenne', 'Grave'];
+const ST = {'OK': 's-OK', 'À surveiller': 's-surv', 'À remplacer': 's-remp', 'Immobilisé': 's-immo'};
+
+function compute(it) {
+  const h = S.hyp, life = h.duree_vie_ans[it.categorie] || 3, achat = D(it.date_achat) || TODAY;
+  const age = (TODAY - achat) / (365.25 * DAY), fin = addY(achat, life);
+  const dg = S.degats.filter(d => d.id === it.id);
+  const cumul = dg.reduce((s, d) => s + (+d.cout || 0), 0);
+  const pct = it.prix_achat ? cumul / it.prix_achat * 100 : 0;
+  const open = dg.filter(d => d.statut !== 'Réparé');
+  const immo = open.some(d => d.immobilise);
+  const recent = dg.filter(d => (TODAY - D(d.date)) / DAY <= 183).length;
+  const why = []; let st = 'OK';
+  if (fin <= TODAY) why.push(`fin de vie estimée dépassée (${life} ans)`);
+  if (pct >= h.seuil_reparations_pct) why.push(`réparations = ${Math.round(pct)} % du prix (seuil ${h.seuil_reparations_pct} %)`);
+  if (why.length) st = 'À remplacer';
+  else {
+    if (age / life * 100 >= h.surveiller_age_pct) why.push(`${Math.round(age / life * 100)} % de sa durée de vie`);
+    if (pct >= h.surveiller_reparations_pct) why.push(`réparations = ${Math.round(pct)} % du prix`);
+    if (recent >= h.surveiller_nb_degats_6_mois) why.push(`${recent} dégâts en 6 mois`);
+    if (why.length) st = 'À surveiller';
+  }
+  if (immo) { st = 'Immobilisé'; why.unshift('réparation en attente, ne pas sortir'); }
+  if (open.length && !immo) why.push(`${open.length} réparation en cours`);
+  const remp = pct >= h.seuil_reparations_pct ? TODAY : fin;
+  return {...it, life, age, fin, cumul, pct, open, st, why, remp, n: dg.length};
+}
+const all = () => S.parc.map(compute);
+
+function estimate(type) {
+  const c = S.degats.filter(d => d.type === type && +d.cout > 0).map(d => +d.cout).sort((a, b) => a - b);
+  if (!c.length) return {n: 0, txt: 'à chiffrer par le réparateur : aucune réparation de ce type dans l\'historique'};
+  const m = c.length % 2 ? c[(c.length - 1) / 2] : (c[c.length / 2 - 1] + c[c.length / 2]) / 2;
+  return {n: c.length, med: m, txt: `≈ ${eur(m)}, médiane de ${c.length} réparation${c.length > 1 ? 's' : ''} « ${type} » déjà payée${c.length > 1 ? 's' : ''} (${c.map(eur).join(', ')})`};
+}
+
+function budget() {
+  const lim = new Date(TODAY.getTime() + 365 * DAY);
+  return all().filter(x => x.remp <= lim).map(x => {
+    const rev = x.prix_achat * S.hyp.revente_pct / 100, d = (x.remp - TODAY) / DAY;
+    const per = d <= 0 ? 'Maintenant' : d <= 92 ? 'Dans 0–3 mois' : d <= 183 ? 'Dans 3–6 mois' : 'Dans 6–12 mois';
+    return {...x, rev, net: x.prix_achat - rev, per, raison: x.pct >= S.hyp.seuil_reparations_pct ? 'Seuil de réparations atteint' : x.remp <= TODAY ? 'Fin de vie dépassée' : 'Fin de vie le ' + fr(x.remp)};
+  }).sort((a, b) => a.remp - b.remp);
+}
+
+function render() {
+  const A = all(), cnt = k => A.filter(x => x.st === k).length, B = budget(), tot = B.reduce((s, x) => s + x.net, 0);
+  $('stats').innerHTML = [['OK', 'en état'], ['À surveiller', 'à surveiller'], ['À remplacer', 'à remplacer'], ['Immobilisé', 'immobilisé(s)']]
+    .map(([k, l]) => `<div class="stat"><b>${cnt(k)}</b><span>${l}</span></div>`).join('');
+  const T = [];
+  A.filter(x => x.st === 'Immobilisé').forEach(x => T.push(['s-immo', 'Ne pas sortir', `${x.id} · ${x.designation}`, x.why.join(' · '), x.id]));
+  A.filter(x => x.st === 'À remplacer').forEach(x => T.push(['s-remp', 'À remplacer', `${x.id} · ${x.designation}`, x.why.join(' · '), x.id]));
+  S.degats.filter(d => d.statut !== 'Réparé' && !d.immobilise).forEach(d => T.push(['s-surv', 'À réparer', `${d.id} · ${d.type}`, d.description, d.id]));
+  const surv = A.filter(x => x.st === 'À surveiller');
+  if (surv.length) T.push(['s-surv', 'À surveiller', surv.map(x => x.id).join(', '), 'usure ou dégâts répétés : voir le parc', '']);
+  T.push(['s-OK', 'Budget', `${eur(tot)} sur 12 mois`, `${B.length} pièces à renouveler, revente déduite`, '#budget']);
+  $('todo').innerHTML = T.map(([c, l, t, w, go]) => `<li><span class="pill ${c}">${l}</span><span><b>${esc(t)}</b><span class="why">${esc(w)}</span></span>${go ? `<button data-go="${esc(go)}">Voir</button>` : '<span></span>'}</li>`).join('');
+
+  $('tb-parc').innerHTML = A.map(x => `<tr${x.id === lastAdded ? ' class="flash"' : ''}><td><b>${esc(x.id)}</b></td><td>${esc(x.designation)}<div class="why">acheté le ${fr(D(x.date_achat) || TODAY)} · ${eur(x.prix_achat)}</div></td><td class="n">${x.age.toFixed(1).replace('.', ',')} an${x.age >= 2 ? 's' : ''}</td><td class="n">${eur(x.cumul)}<div class="why">${x.n} dégât${x.n > 1 ? 's' : ''}</div></td><td><span class="pill ${ST[x.st]}">${x.st}</span></td><td class="why">${esc(x.why.join(' · ') || 'rien à signaler')}</td></tr>`).join('');
+
+  const dg = S.degats.map((d, i) => ({...d, i})).sort((a, b) => b.date.localeCompare(a.date));
+  $('tb-deg').innerHTML = dg.map(d => `<tr${d.id === lastAdded && d.i === S.degats.length - 1 ? ' class="flash"' : ''}><td style="white-space:nowrap">${fr(D(d.date) || TODAY)}</td><td><b>${esc(d.id)}</b></td><td>${esc(d.type)}</td><td>${esc(d.description)}${d.estimation ? `<div class="why">Estimation : ${esc(d.estimation)}</div>` : ''}</td><td>${esc(d.gravite)}</td><td class="n">${d.cout ? eur(d.cout) : '—'}</td><td>${d.statut === 'Réparé' ? 'Réparé' : `<span class="pill ${d.immobilise ? 's-immo' : 's-surv'}">${esc(d.statut)}</span><div class="row" style="margin-top:6px;gap:6px"><input type="number" min="0" inputmode="decimal" aria-label="Coût réel" placeholder="Coût €" data-cost="${d.i}" style="width:7em;padding:6px 8px"><button data-fix="${d.i}" style="min-height:36px;padding:0 12px">Réparé</button></div>`}</td></tr>`).join('');
+
+  $('b-total').textContent = eur(tot);
+  $('b-sub').textContent = `${B.length} pièces à renouveler d'ici le ${fr(new Date(TODAY.getTime() + 365 * DAY))}, revente déduite (${S.hyp.revente_pct} % du prix d'achat).`;
+  const pers = ['Maintenant', 'Dans 0–3 mois', 'Dans 3–6 mois', 'Dans 6–12 mois'], sums = pers.map(p => B.filter(x => x.per === p).reduce((s, x) => s + x.net, 0)), mx = Math.max(...sums, 1);
+  $('bars').innerHTML = pers.map((p, i) => `<div class="bar"><span>${p}</span><div><i class="${i ? '' : 'now'}" style="width:${Math.max(sums[i] / mx * 100, sums[i] ? 2 : 0)}%"></i></div><span class="v">${eur(sums[i])}</span></div>`).join('');
+  $('tb-bud').innerHTML = B.map(x => `<tr><td style="white-space:nowrap">${x.per}</td><td><b>${esc(x.id)}</b></td><td>${esc(x.designation)}</td><td class="why">${esc(x.raison)}</td><td class="n">${eur(x.prix_achat)}</td><td class="n">−${eur(x.rev)}</td><td class="n"><b>${eur(x.net)}</b></td></tr>`).join('') || '<tr><td colspan="7">Rien à renouveler sur 12 mois.</td></tr>';
+
+  const h = S.hyp;
+  $('rules').innerHTML = [
+    `<b>À remplacer</b> si l'âge dépasse la durée de vie de sa catégorie, ou si le total des réparations payées atteint ${h.seuil_reparations_pct} % de son prix d'achat.`,
+    `<b>À surveiller</b> si la pièce a atteint ${h.surveiller_age_pct} % de sa durée de vie, ou si ses réparations dépassent ${h.surveiller_reparations_pct} % de son prix, ou si elle a eu ${h.surveiller_nb_degats_6_mois} dégâts ou plus en 6 mois.`,
+    `<b>Immobilisé</b> si un dégât est signalé « ne pas sortir » et n'est pas encore réparé.`,
+    `<b>Estimation d'une réparation</b> : la médiane de ce que l'école a déjà payé pour le même type de dégât. Sans historique, le Gréeur n'invente pas de prix : il écrit « à chiffrer ».`,
+    `<b>Budget</b> : prix d'achat de chaque pièce à renouveler dans les 12 mois, moins ${h.revente_pct} % de revente.`
+  ].map(t => `<li style="margin-bottom:8px">${t}</li>`).join('');
+}
+
+function hypForm() {
+  const h = S.hyp, f = [];
+  for (const k in h.duree_vie_ans) f.push(`<div><label for="h-${esc(k)}">Durée de vie · ${esc(k)} (ans)</label><input id="h-${esc(k)}" type="number" min="0.5" step="0.5" data-life="${esc(k)}" value="${h.duree_vie_ans[k]}"></div>`);
+  [['seuil_reparations_pct', 'Seuil « à remplacer » : réparations en % du prix'], ['surveiller_age_pct', 'Seuil « à surveiller » : % de la durée de vie'], ['surveiller_reparations_pct', 'Seuil « à surveiller » : réparations en % du prix'], ['surveiller_nb_degats_6_mois', 'Seuil « à surveiller » : nb de dégâts en 6 mois'], ['revente_pct', 'Revente : % du prix d\'achat']]
+    .forEach(([k, l]) => f.push(`<div><label for="h-${k}">${l}</label><input id="h-${k}" type="number" min="0" data-h="${k}" value="${h[k]}"></div>`));
+  $('hyp-form').innerHTML = f.join('');
+}
+$('hyp-form').addEventListener('input', e => {
+  const t = e.target, v = parseFloat(t.value); if (isNaN(v)) return;
+  if (t.dataset.life) S.hyp.duree_vie_ans[t.dataset.life] = v; else if (t.dataset.h) S.hyp[t.dataset.h] = v;
+  render();
+});
+
+/* --- Google Sheet (connecteur Google Sheets de la personne qui ouvre la page) --- */
+const GS = 'Google Sheets', SHEET_DEFAULT = (/*__SHEETS__*/null).matos;
+let mcp = null, src = 'demo', sheetId = SHEET_DEFAULT;
+try { sheetId = localStorage.getItem('mk-sheet-matos') || SHEET_DEFAULT; } catch {}
+$('sheet-id').value = sheetId;
+const SRC = {demo: ['Données de démo', 's-OK'], file: ['Fichier importé', 's-surv'], sheet: ['Google Sheet', 's-OK']};
+function setSrc(v) {
+  src = v; $('src').textContent = SRC[v][0]; $('src').className = 'pill ' + SRC[v][1];
+  $('fict').classList.toggle('hide', v === 'sheet'); $('sheet-refresh').classList.toggle('hide', v !== 'sheet');
+  if (v !== 'sheet') $('n8n-brief').textContent = '';
+}
+function gsErr(e) {
+  const c = e && e.code;
+  if (c === 'needs_reauth') return 'Ta connexion Google Sheets a expiré : reconnecte-la dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'server_not_connected' || c === 'selection_required') return 'Ajoute (ou choisis) le connecteur Google Sheets dans claude.ai, Réglages → Connecteurs.';
+  if (c === 'not_in_manifest' || c === 'approval_required' || c === 'blocked_by_policy') return 'Cette page n\'a pas l\'autorisation d\'utiliser Google Sheets. Recharge la page et accepte la demande.';
+  if (c === 'tool_error') return 'Google Sheets a refusé : ' + String(e.message || '').slice(0, 160);
+  return 'Google Sheets ne répond pas pour l\'instant. Réessaie dans un moment.';
+}
+const gsGet = async range => {
+  const r = await mcp.callTool(GS, 'get_values', {spreadsheetId: sheetId, range}, {cache: false});
+  const p = r.payload || {};
+  return p.values || (p.content && p.content.values) || [];
+};
+const gsPut = (range, values) => mcp.callTool(GS, 'update_values', {spreadsheetId: sheetId, range, values}, {cache: false});
+const rowsToObjs = v => { const h = (v[0] || []).map(norm); return v.slice(1).map((r, i) => { const o = {_row: i + 2}; h.forEach((k, j) => { o[k] = r[j] ?? ''; }); return o; }); };
+const toIso = v => { const t = String(v || '').trim(), m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : t.slice(0, 10); };
+const toNum = v => parseFloat(String(v ?? '').replace(/[\s\u00a0\u202f€]/g, '').replace(',', '.'));
+async function loadSheet() {
+  const id = $('sheet-id').value.trim().replace(/^.*\/d\/([^/]+).*$/, '$1');
+  if (!id) { $('sheet-id').focus(); return; }
+  sheetId = id; try { localStorage.setItem('mk-sheet-matos', id); } catch {}
+  $('sheet-load').disabled = true; $('sheet-state').textContent = 'Lecture de la Google Sheet…';
+  try {
+    const P = rowsToObjs(await gsGet('Parc!A:E')), G = rowsToObjs(await gsGet("'Dégâts'!A:H"));
+    const parc = P.filter(x => x.id).map(x => ({id: String(x.id).trim(), categorie: String(x.categorie).trim(), designation: String(x.designation).trim(), date_achat: toIso(x.dateachat), prix_achat: toNum(x.prixachat) || 0}));
+    if (!parc.length) throw {code: 'tool_error', message: 'onglet Parc vide ou introuvable'};
+    S.parc = parc;
+    S.degats = G.filter(x => x.id).map(x => ({_row: x._row, date: toIso(x.date), id: String(x.id).trim(), type: x.type || 'Autre', description: x.description || '', gravite: x.gravite || 'Moyenne', cout: isNaN(toNum(x.cout)) ? null : toNum(x.cout), statut: x.statut || 'Réparé', immobilise: /^o/i.test(String(x.immobilise))}));
+    parc.forEach(x => { if (!(x.categorie in S.hyp.duree_vie_ans)) S.hyp.duree_vie_ans[x.categorie] = 3; });
+    undo = null; lastAdded = null; setSrc('sheet'); hypForm(); render();
+    $('sheet-state').textContent = `Chargé : ${parc.length} pièces, ${S.degats.length} dégâts. Les ajouts et réparations faits ici sont écrits dans la feuille.`;
+    try {
+      const Br = rowsToObjs(await gsGet('Brief!A:G')).filter(x => x.date), last = Br[Br.length - 1];
+      $('n8n-brief').textContent = last ? `Dernier passage de n8n (${toIso(last.date)}) : ${last.brief}` : 'n8n n\'a pas encore écrit de brief dans la feuille.';
+    } catch { $('n8n-brief').textContent = ''; }
+  } catch (e) { $('sheet-state').textContent = gsErr(e); }
+  finally { $('sheet-load').disabled = false; }
+}
+$('sheet-load').addEventListener('click', loadSheet);
+$('sheet-refresh').addEventListener('click', loadSheet);
+const degatRow = d => ["'" + d.date, d.id, d.type, d.description, d.gravite, d.cout ?? '', d.statut, d.immobilise ? 'oui' : 'non'];
+async function sync(range, values, ok) {
+  if (src !== 'sheet') return;
+  try { await gsPut(range, values); flash(ok); }
+  catch (e) { flash('Pas enregistré dans la Google Sheet. ' + gsErr(e) + ' Clique sur « Recharger » pour revoir l\'état réel de la feuille.'); }
+}
+function flash(msg) { const t = $('toast'); t.classList.remove('hide'); const p = document.createElement('div'); p.className = 'note'; p.style.marginTop = '6px'; p.textContent = msg; t.appendChild(p); }
+
+/* --- signalement --- */
+const EX = ['Le 12 m le plus vieux a une déchirure de 20 cm au bord d\'attaque, on le sort plus', 'La wing 5 m de 2025 : fenêtre un peu fendue, ça tient', 'Planche wingfoil 140 L, gros choc sur le nez, ça prend l\'eau', 'Le harnais M, la boucle a lâché pendant le cours'];
+$('examples').innerHTML = EX.map((t, i) => `<button class="chip" data-ex="${i}">${esc(t)}</button>`).join('');
+$('examples').addEventListener('click', e => { const b = e.target.closest('[data-ex]'); if (b) { $('msg').value = EX[b.dataset.ex]; $('msg').focus(); } });
+
+function parseJSON(t) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b < a) throw new Error('pas de JSON'); return JSON.parse(t.slice(a, b + 1)); }
+
+$('analyse').addEventListener('click', async () => {
+  const msg = $('msg').value.trim();
+  if (!msg) { $('msg').focus(); return; }
+  if (!sample) { showForm({description: msg}, 'L\'analyse IA n\'est pas disponible ici : complète la fiche à la main.'); return; }
+  const btn = $('analyse'); btn.disabled = true; $('ai-state').textContent = 'Le Gréeur lit ton message…';
+  const parc = all().map(x => ({id: x.id, designation: x.designation, achat: x.date_achat, etat: x.st}));
+  const prompt = `Tu es "Le Gréeur", l'agent qui tient le fichier matos d'une école de kitesurf et de wingfoil.
+Un moniteur signale un dégât en langage courant. Associe-le à UNE pièce du parc et structure-le.
+
+PARC (JSON) : ${JSON.stringify(parc)}
+TYPES DE DÉGÂT AUTORISÉS : ${JSON.stringify(TYPES)}
+GRAVITÉS AUTORISÉES : ${JSON.stringify(GRAV)}
+
+Règles :
+- "id" : l'ID de la pièce visée. Si plusieurs pièces correspondent (ex. deux ailes de même taille), utilise les indices (âge, "récent", "vieux", année) ; s'il reste un doute, mets la plus probable et liste les autres dans "candidats".
+- "immobiliser" : true si la pièce ne doit pas ressortir avant réparation (sécurité, prise d'eau, structure, boudin percé, toile très déchirée, boucle de harnais cassée).
+- "description" : reformulation courte et factuelle, en français.
+- "question" : une question courte à poser au moniteur s'il manque une info importante, sinon "".
+- N'invente aucun prix.
+Réponds UNIQUEMENT avec un objet JSON : {"id":"...","candidats":["..."],"type":"...","gravite":"...","immobiliser":true,"description":"...","question":""}
+
+MESSAGE DU MONITEUR : """${msg}"""`;
+  try {
+    const r = await sample(prompt, {modelTier: 'quick', cache: false});
+    const j = parseJSON(r.text);
+    showForm(j, 'Analyse terminée : vérifie la fiche, puis ajoute-la au fichier.');
+  } catch (e) {
+    showForm({description: msg}, e && e.code === 'rate_limited' ? 'Trop de demandes d\'un coup : réessaie dans un instant, ou complète à la main.' : 'Je n\'ai pas pu analyser ce message : complète la fiche à la main.');
+  } finally { btn.disabled = false; $('ai-state').textContent = ''; }
+});
+$('manual').addEventListener('click', () => showForm({description: $('msg').value.trim()}, 'Saisie manuelle.'));
+
+function showForm(j, head) {
+  const A = all(), id = A.some(x => x.id === j.id) ? j.id : '', cand = (j.candidats || []).filter(c => c !== id && A.some(x => x.id === c));
+  const type = TYPES.includes(j.type) ? j.type : 'Autre', grav = GRAV.includes(j.gravite) ? j.gravite : 'Moyenne';
+  $('result').innerHTML = `<p class="note" style="margin:0 0 10px">${esc(head)}</p>
+<div class="grid2">
+<div><label for="f-id">Matériel</label><select id="f-id"><option value="">— choisir —</option>${A.map(x => `<option value="${esc(x.id)}"${x.id === id ? ' selected' : ''}>${esc(x.id + ' · ' + x.designation + ' (' + (D(x.date_achat) || TODAY).getFullYear() + ')')}</option>`).join('')}</select>${cand.length ? `<div class="why">Autre possibilité : ${esc(cand.join(', '))}</div>` : ''}</div>
+<div><label for="f-type">Type de dégât</label><select id="f-type">${TYPES.map(t => `<option${t === type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+<div><label for="f-grav">Gravité</label><select id="f-grav">${GRAV.map(t => `<option${t === grav ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+<div><label for="f-desc">Description</label><input id="f-desc" value="${esc(j.description || '')}"></div>
+</div>
+<label class="row" style="margin:12px 0;font-size:15px;color:var(--ink)"><input type="checkbox" id="f-immo" style="width:22px;height:22px"${j.immobiliser ? ' checked' : ''}> Ne pas sortir avant réparation</label>
+${j.question ? `<p class="toast" style="margin:0 0 10px">Question à poser au moniteur : ${esc(j.question)}</p>` : ''}
+<p class="why" id="f-est"></p>
+<p class="bubble" id="f-effect" style="margin:0"></p>
+<div class="row" style="margin-top:12px"><button class="sail" id="f-add">Ajouter au fichier</button><button id="f-cancel">Annuler</button></div>`;
+  $('result').classList.remove('hide'); $('toast').classList.add('hide');
+  const upd = () => {
+    const it = A.find(x => x.id === $('f-id').value), est = estimate($('f-type').value);
+    $('f-est').textContent = 'Coût estimé : ' + est.txt + '.';
+    if (!it) { $('f-effect').textContent = 'Choisis la pièce concernée.'; return; }
+    const before = compute(it).st;
+    S.degats.push({date: iso(TODAY), id: it.id, type: $('f-type').value, gravite: $('f-grav').value, cout: null, statut: 'À réparer', immobilise: $('f-immo').checked});
+    const after = compute(it).st; S.degats.pop();
+    $('f-effect').textContent = `Effet sur le parc : ${it.id} (${it.designation}) ${before === after ? 'reste' : 'passe de ' + before + ' à'} ${after}. Il apparaîtra dans « À traiter ».`;
+  };
+  $('result').oninput = upd; $('result').onchange = upd; upd();
+  $('f-cancel').onclick = () => $('result').classList.add('hide');
+  $('f-add').onclick = () => {
+    const id = $('f-id').value; if (!id) { $('f-id').focus(); return; }
+    const before = compute(S.parc.find(x => x.id === id)).st, est = estimate($('f-type').value);
+    undo = clone(S.degats);
+    const nd = {date: iso(TODAY), id, type: $('f-type').value, description: $('f-desc').value || '—', gravite: $('f-grav').value, cout: null, statut: 'À réparer', immobilise: $('f-immo').checked, estimation: est.med ? eur(est.med) : 'à chiffrer'};
+    if (src === 'sheet') nd._row = Math.max(1, ...S.degats.map(d => d._row || 0)) + 1;
+    S.degats.push(nd);
+    lastAdded = id; render();
+    const after = compute(S.parc.find(x => x.id === id)).st;
+    $('result').classList.add('hide');
+    const t = $('toast'); t.classList.remove('hide');
+    t.innerHTML = `Ajouté au carnet. <b>${esc(id)}</b> : ${before === after ? 'reste' : 'passe de ' + esc(before) + ' à'} <b>${esc(after)}</b>. <button id="undo" style="min-height:36px;margin-left:6px">Annuler</button>`;
+    $('undo').onclick = () => { if (undo) { S.degats = undo; undo = null; lastAdded = null; render(); t.classList.add('hide'); if (nd._row) sync(`'Dégâts'!A${nd._row}:H${nd._row}`, [['', '', '', '', '', '', '', '']], 'Ligne retirée de la Google Sheet.'); } };
+    $('msg').value = '';
+    if (nd._row) sync(`'Dégâts'!A${nd._row}:H${nd._row}`, [degatRow(nd)], `Écrit dans la Google Sheet, ligne ${nd._row}.`);
+  };
+}
+
+$('tb-deg').addEventListener('click', e => {
+  const b = e.target.closest('[data-fix]'); if (!b) return;
+  const i = +b.dataset.fix, inp = document.querySelector(`[data-cost="${i}"]`), v = parseFloat(inp.value);
+  if (isNaN(v)) { inp.focus(); return; }
+  S.degats[i].cout = v; S.degats[i].statut = 'Réparé'; S.degats[i].immobilise = false; lastAdded = null; render();
+  const r = S.degats[i]._row;
+  if (r) { $('toast').classList.add('hide'); $('toast').textContent = ''; sync(`'Dégâts'!F${r}:H${r}`, [[v, 'Réparé', 'non']], `Réparation enregistrée dans la Google Sheet (ligne ${r}).`); }
+});
+
+/* --- onglets --- */
+const showTab = v => {
+  document.querySelectorAll('.tabs [data-v]').forEach(x => x.setAttribute('aria-selected', x.dataset.v === v));
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('hide', el.id !== 'v-' + v));
+};
+$('todo').addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  const g = b.dataset.go;
+  if (g === '#budget') showTab('budget'); else { lastAdded = g; render(); showTab('parc'); }
+  document.querySelector('nav.tabs').scrollIntoView({behavior: 'smooth'});
+});
+document.querySelector('.tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-v]'); if (b) showTab(b.dataset.v);
+});
+
+/* --- questions --- */
+const QS = ['Qu\'est-ce que je dois racheter avant la haute saison ?', 'Quelle pièce me coûte le plus en réparations ?', 'Combien d\'ailes wing peuvent sortir demain ?', 'Si je garde les kites 4 ans au lieu de 3, qu\'est-ce que ça change ?'];
+$('qs').innerHTML = QS.map((t, i) => `<button class="chip" data-q="${i}">${esc(t)}</button>`).join('');
+$('qs').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (b) { $('q').value = QS[b.dataset.q]; $('ask').click(); } });
+$('ask').addEventListener('click', async () => {
+  const q = $('q').value.trim(); if (!q) { $('q').focus(); return; }
+  if (!sample) { $('answer').textContent = 'Les questions à l\'IA ne sont pas disponibles dans cette vue.'; return; }
+  const ctx = {aujourdhui: iso(TODAY), regles: S.hyp, parc: all().map(x => ({id: x.id, designation: x.designation, categorie: x.categorie, achat: x.date_achat, prix: x.prix_achat, age_ans: +x.age.toFixed(1), etat: x.st, raisons: x.why, reparations_payees: x.cumul, remplacement_prevu: iso(x.remp)})), degats: S.degats, budget_12_mois: budget().map(x => ({id: x.id, quand: x.per, net: Math.round(x.net)}))};
+  $('ask').disabled = true; $('ask-state').textContent = 'Le Gréeur réfléchit…'; $('answer').textContent = '';
+  try {
+    await sample(`Tu es "Le Gréeur", l'agent matos d'une école de kite et de wing. Tu réponds au gérant, en français, en le tutoyant, en 120 mots maximum, sans markdown.
+Réponds UNIQUEMENT à partir des données ci-dessous. Cite les ID des pièces. Si la question demande une info absente (planning, réservations, météo, prix fournisseurs actuels…), dis clairement que le fichier ne la contient pas. Si tu fais un calcul, montre-le en une ligne. Si la question porte sur un changement de règle, recalcule à partir des dates d'achat.
+DONNÉES : ${JSON.stringify(ctx)}
+QUESTION : ${q}`, {cache: false, onText: ({text}) => { $('answer').textContent = text; }});
+  } catch (e) { $('answer').textContent = e && e.code === 'rate_limited' ? 'Trop de demandes d\'un coup, réessaie dans un instant.' : 'Je n\'ai pas pu répondre cette fois.'; }
+  finally { $('ask').disabled = false; $('ask-state').textContent = ''; }
+});
+
+/* --- Excel --- */
+const H_P = ['ID', 'Catégorie', 'Désignation', "Date d'achat", "Prix d'achat (€)"];
+const H_D = ['Date', 'ID matériel', 'Type', 'Description', 'Gravité', 'Coût (€)', 'Statut', 'Immobilisé'];
+$('dl').addEventListener('click', async () => {
+  if (!window.XLSX) { $('xls-state').textContent = 'La bibliothèque Excel charge encore, réessaie dans une seconde.'; return; }
+  if (!downloads) { $('xls-state').textContent = 'Le téléchargement n\'est pas disponible dans cette vue.'; return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([H_P, ...S.parc.map(x => [x.id, x.categorie, x.designation, x.date_achat, x.prix_achat])]), 'Parc');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([H_D, ...S.degats.map(d => [d.date, d.id, d.type, d.description, d.gravite, d.cout ?? '', d.statut, d.immobilise ? 'oui' : 'non'])]), 'Dégâts');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Paramètre', 'Valeur'], ...Object.entries(S.hyp.duree_vie_ans).map(([k, v]) => ['Durée de vie (ans) · ' + k, v]), ...['seuil_reparations_pct', 'surveiller_age_pct', 'surveiller_reparations_pct', 'surveiller_nb_degats_6_mois', 'revente_pct'].map(k => [k, S.hyp[k]])]), 'Hypothèses');
+  try { await downloads.save({filename: 'greeur-parc-matos.xlsx', data: new Blob([XLSX.write(wb, {bookType: 'xlsx', type: 'array'})])}); $('xls-state').textContent = 'Fichier téléchargé.'; }
+  catch (e) { $('xls-state').textContent = e && e.code === 'declined' ? 'Téléchargement annulé.' : 'Le téléchargement n\'a pas abouti.'; }
+});
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+const pick = (row, ...names) => { for (const k in row) if (names.includes(norm(k))) return row[k]; return ''; };
+const dstr = v => v instanceof Date ? iso(new Date(v.getTime() + 12 * 36e5)) : String(v).slice(0, 10);
+$('up').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (!window.XLSX) { $('xls-state').textContent = 'La bibliothèque Excel charge encore, réessaie.'; return; }
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), {cellDates: true});
+    const sh = n => wb.SheetNames.find(s => norm(s) === n);
+    const P = XLSX.utils.sheet_to_json(wb.Sheets[sh('parc') || wb.SheetNames[0]]), G = sh('degats') ? XLSX.utils.sheet_to_json(wb.Sheets[sh('degats')]) : [];
+    const parc = P.map(r => ({id: String(pick(r, 'id')).trim(), categorie: String(pick(r, 'categorie')).trim(), designation: String(pick(r, 'designation')).trim(), date_achat: dstr(pick(r, 'datedachat', 'dateachat')), prix_achat: parseFloat(pick(r, 'prixdachat', 'prixdachateur', 'prixachat')) || 0})).filter(x => x.id);
+    if (!parc.length) throw new Error();
+    const unk = [...new Set(parc.map(x => x.categorie).filter(c => !(c in S.hyp.duree_vie_ans)))];
+    unk.forEach(c => { S.hyp.duree_vie_ans[c] = 3; });
+    S.parc = parc;
+    S.degats = G.map(r => ({date: dstr(pick(r, 'date')), id: String(pick(r, 'idmateriel', 'id')).trim(), type: String(pick(r, 'type') || 'Autre'), description: String(pick(r, 'description')), gravite: String(pick(r, 'gravite') || 'Moyenne'), cout: parseFloat(pick(r, 'cout', 'couteur')) || null, statut: String(pick(r, 'statut') || 'Réparé'), immobilise: /^o/i.test(String(pick(r, 'immobilise')))})).filter(d => d.id);
+    lastAdded = null; setSrc('file'); hypForm(); render();
+    $('xls-state').textContent = `Chargé : ${parc.length} pièces, ${S.degats.length} dégâts.` + (unk.length ? ` Catégories nouvelles (${unk.join(', ')}) : durée de vie de 3 ans par défaut, modifiable dans Règles de calcul.` : '');
+  } catch { $('xls-state').textContent = 'Je n\'ai pas reconnu le format. Pars du fichier téléchargé : onglets Parc et Dégâts, mêmes colonnes.'; }
+});
+
+$('reset').addEventListener('click', () => { S = {hyp: clone(DEMO.hypotheses), parc: clone(DEMO.parc), degats: clone(DEMO.degats)}; undo = null; lastAdded = null; setSrc('demo'); hypForm(); render(); $('result').classList.add('hide'); $('toast').classList.add('hide'); });
+
+hypForm(); render();
+const noAI = () => { $('ai-state').textContent = 'Analyse IA indisponible ici : saisie manuelle possible.'; };
+const boot = tries => {
+  if (window.claude && claude.use) {
+    claude.use('sample').then(s => { sample = s; if (!s) noAI(); }, noAI);
+    claude.use('mcp').then(m => { mcp = m; if (!m) { $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; } }, () => $('sheet-box').classList.add('hide'));
+    claude.use('downloads').then(d => { downloads = d; if (!d) $('dl').classList.add('hide'); }, () => $('dl').classList.add('hide'));
+  } else if (tries > 0) setTimeout(() => boot(tries - 1), 500);
+  else { noAI(); $('dl').classList.add('hide'); $('sheet-box').classList.add('hide'); $('sheet-state').textContent = 'Le connecteur Google Sheets n\'est pas disponible dans cette vue : la page tourne sur les données de démo.'; }
+};
+boot(6);
+}
+</script>
+</body>
+</html>
