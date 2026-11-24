@@ -1,6 +1,6 @@
 // Règles de calcul du Gréeur — MÊMES règles que le démonstrateur web.
-// Hypothèses de départ, à caler avec l'école (voir docs/regles-de-calcul.md).
-// Ce bloc est recopié en tête des nodes Code par tools/build_n8n.py.
+// Hypothèses de départ, à caler avec l'école (voir greeur/docs/regles.md).
+// Ce bloc est recopié en tête des nodes Code par tools/build.py.
 const HYP = {
   duree_vie_ans: { 'Voile kite': 3, 'Aile wing': 3, 'Planche twintip': 4, 'Planche wingfoil': 5, 'Foil': 5, 'Harnais': 2, 'Barre': 3 },
   seuil_reparations_pct: 50,

@@ -1,6 +1,6 @@
 # VA Gwada — lab
 
-L'environnement de dev de VA Gwada (Roxane & Saskia) : démonstrateurs, jeux de données fictifs, prompts et workflows n8n, rangés par client.
+L'environnement de dev de VA Gwada (Roxane & Saskia) : démonstrateurs, données fictives, prompts et workflows n8n, rangés par client puis par agent.
 
 > Tout ce qui est dans `data/` est **fictif**. Les données réelles d'un client ne vont jamais dans ce repo.
 
@@ -8,37 +8,49 @@ L'environnement de dev de VA Gwada (Roxane & Saskia) : démonstrateurs, jeux de 
 
 ```
 clients/
-  maximum-kite/            école de kite & wing, marina du Gosier
-    demonstrateur/         app web montrée en rendez-vous (greeur.html = version construite)
-    data/                  données fictives : source unique en JSON + Excel/CSV générés
-    n8n/                   workflows importables + leur code JS (n8n/code/)
-    prompts/               les consignes données à l'IA, en clair
-    docs/                  règles de calcul, mode d'emploi de la démo
-tools/                     scripts de build (Python)
-docs/                      conventions communes à tous les clients
+  maximum-kite/                 un dossier par client
+    sheets.json                 IDs des Google Sheets du client (une par base)
+    data/                       LES SOURCES de données fictives, une par base
+      matos.json                  base Matos : parc, dégâts, utilisations
+      reservations.json           base Réservations : règles école, vent, demandes, réservations, messages
+      README.md                   le schéma : onglets, colonnes, clés, qui écrit quoi
+      generes/                    Excel générés (ne pas modifier à la main)
+    greeur/                     un dossier par agent, toujours la même forme :
+      demonstrateur/              page de démo (*.src.html = source, *.html = construite)
+      n8n/                        workflows importables + leur code (n8n/code/*.js)
+      prompts/                    consignes données à l'IA, en clair
+      docs/                       règles de calcul, script de démo
+    accueil/                    (même forme)
+tools/
+  build.py                      construit tout ce qui est généré, pour un client
+docs/
+  conventions.md                règles communes (données, IA, n8n, git)
 ```
 
-## Le principe
+## Construire
 
-Une seule source de données par client (`data/*.json`). Les scripts de `tools/` en tirent :
-- l'app de démo (données intégrées dans le HTML),
-- le fichier Excel à montrer et à faire remplir au client,
-- les CSV à importer dans une Google Sheet de test pour n8n.
-
-Si on change une donnée ou une règle, on relance les scripts. L'app et les workflows restent alignés.
+Une seule commande, après chaque modification d'une source (données, règles, page, code n8n) :
 
 ```bash
-pip install openpyxl          # une seule fois
-python3 tools/build_greeur.py # app + Excel + CSV
-python3 tools/build_n8n.py    # workflows n8n
+pip install openpyxl            # une seule fois
+python3 tools/build.py          # client par défaut : maximum-kite
 ```
+
+Elle produit les pages de démo, les workflows n8n et les deux bases en Excel. Les fichiers générés sont versionnés : Saskia peut ouvrir une page ou importer un workflow sans rien lancer.
 
 ## Démonstrateurs en ligne
 
 | Client | Agent | Lien |
 |---|---|---|
-| Maximum Kite | Le Gréeur (matos) | https://claude.ai/artifact/8G5RXqhYTsB3GqLTWjxQsu (privé : à partager avec Saskia depuis claude.ai) |
+| Maximum Kite | Le Gréeur (matos) | https://claude.ai/artifact/8G5RXqhYTsB3GqLTWjxQsu |
+| Maximum Kite | L'Accueil (vacanciers) | https://claude.ai/artifact/TrBdK7B3eJTndSf89RuKbB |
+
+Privés : à partager avec Saskia depuis claude.ai.
+
+## Travailler à deux (git)
+
+Un seul repo pour tout, `main` toujours propre. Le détail est dans [docs/conventions.md](docs/conventions.md#git). En bref : une branche courte par changement, une pull request, l'autre relit, on fusionne en « Squash and merge », on supprime la branche.
 
 ## Ajouter un client
 
-Copier `clients/maximum-kite/` vers `clients/<nom-client>/`, remplacer les données fictives, adapter les prompts. Voir [docs/conventions.md](docs/conventions.md).
+Copier `clients/maximum-kite/` vers `clients/<client>/`, remplacer les données fictives et `sheets.json`, garder les agents utiles. Puis `python3 tools/build.py <client>`.
