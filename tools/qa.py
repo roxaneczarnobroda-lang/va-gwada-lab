@@ -3,10 +3,14 @@
 Usage (depuis la racine du repo, lancé aussi automatiquement à la fin de tools/build.py) :
     python3 tools/qa.py                 # client par défaut : maximum-kite
     python3 tools/qa.py maximum-kite
+    python3 tools/qa.py maximum-kite --signer "Saskia"   # le testeur valide le cahier de tests
 
 Lit le contrat de données, le manifeste de gouvernance, les workflows et pages GÉNÉRÉS, le code et les scénarios
 de test du client. Écrit clients/<client>/gouvernance/rapport-qa.md (le rapport à montrer au client).
 Code de sortie 1 si une gate est bloquante (le build et la CI échouent).
+
+Cahier de tests = exigences du manifeste + scénarios + contrat de données. Il doit être validé (signé) par un
+testeur qui n'en est pas l'auteur ; toute modification après signature annule la validation.
 
 Niveau « demo » : ce qui ne compte qu'en prod (sorties de démo, contrôles manuels non signés…) est un avertissement.
 Niveau « prod » : tout est bloquant.
@@ -16,6 +20,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -24,7 +29,10 @@ from openpyxl import load_workbook
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gouvernance import GARDE_JS, ROOT, Client, empreinte  # noqa: E402
 
-CLIENT = sys.argv[1] if len(sys.argv) > 1 else "maximum-kite"
+ARGS = sys.argv[1:]
+SIGNER = ARGS[ARGS.index("--signer") + 1] if "--signer" in ARGS else None
+POS = [a for i, a in enumerate(ARGS) if not a.startswith("--") and (i == 0 or ARGS[i - 1] != "--signer")]
+CLIENT = POS[0] if POS else "maximum-kite"
 GOV = Client(CLIENT)
 C = GOV.dir
 M = GOV.manifeste
@@ -34,6 +42,7 @@ SHEETS = {k: v for k, v in json.loads((C / "sheets.json").read_text(encoding="ut
 J_BASE, J_TAB = GOV.journal["base"], GOV.journal["onglet"]
 
 GATES = {
+    "VALIDATION-TESTEUR": "Le cahier de tests (exigences, scénarios, contrat) est validé par un testeur indépendant et n'a pas changé depuis",
     "CONTRAT": "Contrat de données complet ; données de démo et Excel générés conformes (même validateur que n8n)",
     "PERSO": "Chaque donnée personnelle a une finalité et une durée de conservation ; aucune dans le Journal",
     "ECRITURE-PROPRIETAIRE": "Chaque onglet n'est écrit que par l'agent déclaré, dans les fichiers déclarés",
@@ -205,7 +214,8 @@ for p, wf in WFS.items():
     by, succ, pred = graphe(wf)
     nom = f"{rel(p)}"
     if agent == "gouvernance" and any(n["type"] == "n8n-nodes-base.errorTrigger" for n in wf["nodes"]):
-        erreurs_wf = any(cible(w) == (J_BASE, J_TAB) for w in ecritures(wf))
+        erreurs_wf = any(cible(w) == (J_BASE, J_TAB) for w in ecritures(wf)) and any(
+            "chainer(" in n["parameters"].get("jsCode", "").replace(GARDE_JS, "") for n in wf["nodes"])
     for w in ecritures(wf):
         base, tab = cible(w)
         if base is None:
@@ -232,8 +242,12 @@ for p, wf in WFS.items():
         if est_journal:
             journalises.add(nom)
             continue
-        # Le journal : un node Journal qui écrit dans l'onglet Journal
-        js_j = [by[s] for s in succ[w["name"]] if "garderLot(" in by[s]["parameters"].get("jsCode", "")]
+        # Le journal : Lire Journal → node Journal (chaîné) → écriture dans l'onglet Journal
+        lect = [s for s in succ[w["name"]] if by[s]["type"] == "n8n-nodes-base.googleSheets"
+                and by[s]["parameters"].get("operation") in (None, "read") and cible(by[s]) == (J_BASE, J_TAB)]
+        js_j = [by[s] for r in lect for s in succ[r] if "garderLot(" in by[s]["parameters"].get("jsCode", "")]
+        if js_j and "chainer(" not in js_j[0]["parameters"]["jsCode"].replace(GARDE_JS, ""):
+            bloque("JOURNAL", f"{nom} « {w['name']} » : ligne de Journal non chaînée (pas de preuve d'intégrité)")
         trace = [t for j in js_j for t in succ[j["name"]] if by[t]["type"] == "n8n-nodes-base.googleSheets" and cible(by[t]) == (J_BASE, J_TAB)]
         if not trace:
             bloque("JOURNAL", f"{nom} « {w['name']} » : écriture non tracée dans le Journal")
@@ -407,8 +421,33 @@ for f in scen_files:
 nb = sum(len(v) for v in SCEN.values())
 info("SCENARIOS", f"{nb} scénarios dans {len(scen_files)} fichier(s), {sum(ok for v in SCEN.values() for _, ok, _ in v)} réussis")
 
+# ============================================================ VALIDATION-TESTEUR
+VALID_P = C / "gouvernance" / "validations.json"
+VALID = json.loads(VALID_P.read_text(encoding="utf-8"))
+cahier = {"exigences": M["exigences"], "contrat": GOV.contrat_brut,
+          "scenarios": {f.name: f.read_text(encoding="utf-8") for f in scen_files}}
+EMPREINTE_CAHIER = empreinte(cahier)
+spec = VALID.setdefault("SPEC", {"redige_par": None, "testeur": None, "date": None, "empreinte": None})
+if SIGNER:
+    if spec.get("redige_par") and SIGNER.strip().lower() == str(spec["redige_par"]).strip().lower():
+        print(f"Refusé : {SIGNER} a rédigé le cahier de tests, la validation doit venir d'une autre personne.")
+        sys.exit(2)
+    spec.update({"testeur": SIGNER.strip(), "date": date.today().isoformat(), "empreinte": EMPREINTE_CAHIER})
+    VALID_P.write_text(json.dumps(VALID, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Cahier de tests {EMPREINTE_CAHIER} validé par {SIGNER} — à commiter dans une PR relue.")
+if not spec.get("redige_par"):
+    avert("VALIDATION-TESTEUR", "validations.json → SPEC.redige_par : indiquer qui a rédigé le cahier de tests")
+if not spec.get("testeur"):
+    avert("VALIDATION-TESTEUR", f"Cahier de tests {EMPREINTE_CAHIER} pas encore validé par un testeur (python3 tools/qa.py {CLIENT} --signer \"Prénom\")")
+elif spec["testeur"].strip().lower() == str(spec.get("redige_par", "")).strip().lower():
+    bloque("VALIDATION-TESTEUR", f"{spec['testeur']} a rédigé ET validé le cahier de tests : la validation doit être indépendante")
+elif spec.get("empreinte") != EMPREINTE_CAHIER:
+    avert("VALIDATION-TESTEUR", f"Cahier de tests modifié depuis sa validation par {spec['testeur']} le {spec['date']} "
+                                f"({spec.get('empreinte')} → {EMPREINTE_CAHIER}) : à revalider")
+else:
+    info("VALIDATION-TESTEUR", f"Cahier de tests {EMPREINTE_CAHIER} rédigé par {spec['redige_par']}, validé par {spec['testeur']} le {spec['date']}")
+
 # ============================================================ EXIGENCES → verdict
-VALID = json.loads((C / "gouvernance" / "validations.json").read_text(encoding="utf-8"))
 ORDRE = {"ok": 0, "à faire": 1, "avertissement": 1, "bloquant": 2}
 LIB = {"ok": "✅ respectée", "avertissement": "⚠️ avec réserves", "à faire": "🕓 contrôle manuel à faire", "bloquant": "❌ non respectée"}
 exig = []
@@ -452,6 +491,8 @@ ICONE = {"ok": "✅", "avertissement": "⚠️", "bloquant": "❌"}
 L = [f"# Rapport QA — {M['client']}", "",
      "> Généré par `tools/qa.py` à chaque build. Ne pas modifier à la main.", "",
      f"**{verdict}** · niveau **{M['niveau']}** · hébergement **{M['hebergement']}** · contrat de données `{CONTRAT_V}`", "",
+     ("Cahier de tests `" + EMPREINTE_CAHIER + "` : " + (f"rédigé par {spec.get('redige_par')}, validé par {spec['testeur']} le {spec['date']}"
+      if spec.get("testeur") and spec.get("empreinte") == EMPREINTE_CAHIER else "**non validé par un testeur**")), "",
      "## Ce que nous vous garantissons", "",
      "| | Exigence | Comment c'est vérifié | Résultat |", "|---|---|---|---|"]
 for e, st, preuves in exig:

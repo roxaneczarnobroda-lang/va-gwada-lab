@@ -1,6 +1,14 @@
 {
   "_note": "Signatures des contrôles MANUELS (exigences avec « manuel »). Une entrée = qui a vérifié, quand, et où est la preuve. En niveau prod, une exigence manuelle sans entrée bloque la QA.",
+  "_spec": "Validation du CAHIER DE TESTS (exigences + scénarios + contrat) par un testeur qui n'en est pas l'auteur. Signer avec : python3 tools/qa.py <client> --signer \"Prénom\". Toute modification ultérieure de ces fichiers annule la signature.",
+  "SPEC": {
+    "redige_par": "Roxane",
+    "testeur": null,
+    "date": null,
+    "empreinte": null
+  },
   "EX-09": null,
   "EX-10": null,
-  "EX-11": null
+  "EX-11": null,
+  "EX-12": null
 }

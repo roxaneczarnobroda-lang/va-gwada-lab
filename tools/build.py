@@ -318,14 +318,16 @@ def garde_node(name, base, tab, operation, pos):
 def journal_node(name, entete, pos):
     js = ("// Journal — une ligne par écriture. Généré par tools/build.py. Aucune donnée personnelle : seulement les clés.\n"
           + js_const("GOUV_ONGLET", JOURNAL_ONGLET) + js_const("E", entete) + GARDE_JS + r"""
-const lignes = $input.all();
+// Lignes écrites : sortie du node d'écriture. Journal existant : lu juste avant, pour chaîner les empreintes.
+const lignes = $(E.noeud).all();
+const J = $input.all().map(i => i.json).filter(r => r && r.horodatage);
 let h; try { h = $now.toFormat('yyyy-MM-dd HH:mm:ss'); } catch (e) { h = new Date().toISOString().slice(0, 19).replace('T', ' '); }
 const cles = [...new Set(lignes.map(i => i.json[E.cle]).filter(v => v !== undefined && v !== null && v !== ''))];
-return garderLot(GOUV_ONGLET, [{ json: {
+return garderLot(GOUV_ONGLET, [{ json: chainer(GOUV_ONGLET, J, {
   horodatage: h, execution: String($execution.id), workflow: $workflow.name, version: E.version, agent: E.agent,
   base: E.base, onglet: E.onglet, operation: E.operation, nb_lignes: lignes.length, cles: cles.join(', ').slice(0, 500),
   ia_modele: E.ia_modele, controle: 'conforme au contrat ' + E.contrat, validation: E.validation, statut: 'ok',
-} }], 'ajout');""")
+}) }], 'ajout');""")
     return {"parameters": {"jsCode": js}, "name": name, "type": "n8n-nodes-base.code", "typeVersion": 2, "position": pos}
 
 
@@ -347,19 +349,21 @@ def gouverner(agent, nodes, conn):
         g = garde_node(f"Garde — {w['name']}", meta["base"], meta["onglet"], meta["operation"], [x, y])
         w["position"] = [x + 220, y]
         o = GOV.onglet(meta["base"], meta["onglet"])
-        entete = {"version": version, "contrat": CONTRAT_V, "agent": agent, "base": meta["base"], "onglet": meta["onglet"],
+        entete = {"noeud": w["name"], "version": version, "contrat": CONTRAT_V, "agent": agent, "base": meta["base"], "onglet": meta["onglet"],
                   "operation": meta["operation"], "cle": o["cle"], "ia_modele": ia_modele, "validation": meta["validation"]}
-        j = journal_node(f"Journal — {w['name']}", entete, [x + 440, y])
-        jw = _sheet_write(f"Tracer — {w['name']}", GOV.journal["base"], GOV.journal["onglet"], [x + 660, y])
+        jr = sheet_read(f"Lire Journal — {w['name']}", GOV.journal["base"], GOV.journal["onglet"], [x + 440, y], execute_once=True)
+        j = journal_node(f"Journal — {w['name']}", entete, [x + 660, y])
+        jw = _sheet_write(f"Tracer — {w['name']}", GOV.journal["base"], GOV.journal["onglet"], [x + 880, y])
         for d in conn.values():
             for sortie in d["main"]:
                 for l in sortie:
                     if l["node"] == w["name"]:
                         l["node"] = g["name"]
         conn[g["name"]] = {"main": [[lien(w["name"])]]}
-        conn.setdefault(w["name"], {"main": [[]]})["main"][0].append(lien(j["name"]))
+        conn.setdefault(w["name"], {"main": [[]]})["main"][0].append(lien(jr["name"]))
+        conn[jr["name"]] = {"main": [[lien(j["name"])]]}
         conn[j["name"]] = {"main": [[lien(jw["name"])]]}
-        out += [g, w, j, jw]
+        out += [g, w, jr, j, jw]
     return out, conn, version
 
 
@@ -397,17 +401,19 @@ return out;""")
     # Erreurs : à choisir comme « Error workflow » dans les Settings de chaque workflow.
     err = js_const("GOUV_ONGLET", JOURNAL_ONGLET) + GARDE_JS + r"""
 // Le message d'erreur peut contenir des valeurs (« … ») : on les masque, le Journal ne garde aucune donnée perso.
-const x = $input.first().json, ex = x.execution || {}, er = ex.error || {};
+const x = $('Erreur d\'un workflow').first().json, ex = x.execution || {}, er = ex.error || {};
+const J = $input.all().map(i => i.json).filter(r => r && r.horodatage);
 const msg = String(er.message || 'erreur').replace(/«[^»]*»/g, '«…»').slice(0, 200);
 let h; try { h = $now.toFormat('yyyy-MM-dd HH:mm:ss'); } catch (e) { h = new Date().toISOString().slice(0, 19).replace('T', ' '); }
-return garderLot(GOUV_ONGLET, [{ json: {
+return garderLot(GOUV_ONGLET, [{ json: chainer(GOUV_ONGLET, J, {
   horodatage: h, execution: String(ex.id || ''), workflow: (x.workflow && x.workflow.name) || '?', version: '—', agent: 'gouvernance',
   base: '—', onglet: String(ex.lastNodeExecuted || ''), operation: 'erreur', nb_lignes: 0, cles: '', ia_modele: '',
   controle: msg, validation: 'à reprendre par l\'équipe', statut: 'erreur',
-} }], 'ajout');"""
+}) }], 'ajout');"""
     n = [{"parameters": {}, "name": "Erreur d'un workflow", "type": "n8n-nodes-base.errorTrigger", "typeVersion": 1, "position": [0, 0]},
-         {"parameters": {"jsCode": err}, "name": "Ligne Journal erreur", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [220, 0]},
-         _sheet_write("Tracer l'erreur", GOV.journal["base"], GOV.journal["onglet"], [440, 0])]
+         sheet_read("Lire Journal", GOV.journal["base"], GOV.journal["onglet"], [220, 0], execute_once=True),
+         {"parameters": {"jsCode": err}, "name": "Ligne Journal erreur", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [440, 0]},
+         _sheet_write("Tracer l'erreur", GOV.journal["base"], GOV.journal["onglet"], [660, 0])]
     W[("gouvernance", "gouvernance-journal-erreurs", "Gouvernance — Journal des erreurs")] = (n, chain(*names(n)))
     return W
 
@@ -434,7 +440,7 @@ for local in ([False, True] if CREDS else [False]):
         out = dossier / (fname + (".local.json" if local else ".json"))
         out.write_text(json.dumps(wf, ensure_ascii=False, indent=2), encoding="utf-8")
 
-print(f"OK {CLIENT} : 2 pages, 2 bases Excel (dates à partir du {TODAY}), {len(VERSIONS)} workflows n8n gouvernés"
+print(f"OK {CLIENT} : 2 pages, {len(SCHEMA)} bases Excel (dates à partir du {TODAY}), {len(VERSIONS)} workflows n8n gouvernés"
       + (" (+ versions .local branchées)" if CREDS else ""))
 
 # ---------------------------------------------------------------- 5. QA gates
