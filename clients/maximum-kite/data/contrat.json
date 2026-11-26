@@ -132,7 +132,7 @@
       "description": "Base GOUVERNANCE — traçabilité des automatisations, séparée des données métier (droits d'accès et conservation à part).",
       "onglets": {
         "Journal": {
-          "description": "Traçabilité : une ligne par écriture automatique (quoi, quand, quelle version, quelle validation). Jamais de donnée personnelle ici.",
+          "description": "Traçabilité : une ligne par écriture automatique (quoi, quand, quelle version, quelle validation). Ajout seulement, chaque ligne porte l'empreinte de la précédente : une modification ou une suppression se voit. Jamais de donnée personnelle ici.",
           "cle": "execution", "cle_unique": false, "ecrit_par": ["gouvernance"],
           "colonnes": {
             "horodatage": {"type": "horodatage", "obligatoire": true, "perso": "non"},
@@ -148,7 +148,9 @@
             "ia_modele": {"type": "texte", "obligatoire": false, "perso": "non"},
             "controle": {"type": "texte", "obligatoire": true, "perso": "non"},
             "validation": {"type": "texte", "obligatoire": true, "perso": "non"},
-            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["ok", "erreur"], "perso": "non"}
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["ok", "erreur"], "perso": "non"},
+            "precedent": {"type": "texte", "obligatoire": true, "format": "^(GENESE|[0-9a-f]{64})$", "perso": "non"},
+            "empreinte": {"type": "texte", "obligatoire": true, "format": "^[0-9a-f]{64}$", "perso": "non"}
           }
         }
       }

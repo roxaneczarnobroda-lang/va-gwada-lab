@@ -21,6 +21,20 @@ La gouvernance n'est pas une doc à part : elle est **dans le code généré**, 
 
 Écrire dans une Sheet sans passer par `sheet_write(..., validation="…")` n'est pas possible dans `tools/build.py` : il faut dire qui valide ce qui est écrit.
 
+## Le Journal : un journal d'audit, pas un tableau
+
+- **Fichier à part** (base `gouvernance` du contrat) : jamais mélangé aux données métier, droits d'accès à part.
+- **Ajout seulement, chaîné** : chaque ligne porte l'empreinte SHA-256 de la précédente (`precedent`) et la sienne (`empreinte`). Une ligne modifiée, supprimée ou insérée à la main casse la chaîne.
+- **Ancré dans git** : `python3 tools/verifier_journal.py <client> journal.csv --ancrer` vérifie la chaîne et enregistre la dernière empreinte dans `gouvernance/ancres.json`. Réécrire toute la chaîne ne suffit plus : il faudrait aussi réécrire l'historique git. À faire régulièrement (par exemple chaque semaine) et à chaque recette.
+- **Protégé** : l'onglet est une plage protégée, seul le compte qui fait tourner n8n peut écrire.
+- **Sans donnée perso** : seulement des clés (n° de pièce, de réservation, de demande).
+
+Limites connues, à traiter avant la prod :
+- n8n écrit avec le compte Google personnel de Roxane : passer à un **compte technique par client**, qui n'a accès qu'aux fichiers de ce client (moindre privilège).
+- Le propriétaire du fichier peut toujours modifier : la chaîne et les ancres le **rendent visible**, elles ne l'empêchent pas. Pour l'empêcher : stockage à verrou de rétention ou table Postgres en insertion seule, une fois l'hébergement choisi.
+- Deux exécutions simultanées peuvent lire la même dernière ligne et dédoubler la chaîne (signalé comme rupture). Rare à ces volumes.
+- Le node relit tout le Journal à chaque écriture : à revoir au-delà de quelques milliers de lignes.
+
 ## Les QA gates (`tools/qa.py`)
 
 | Gate | Bloque si… |

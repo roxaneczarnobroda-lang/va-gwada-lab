@@ -2,9 +2,9 @@
 
 > Généré par `tools/qa.py` à chaque build. Ne pas modifier à la main.
 
-**⚠️ QA passée avec réserves** · niveau **demo** · hébergement **standard** · contrat de données `e1cd85ee31`
+**⚠️ QA passée avec réserves** · niveau **demo** · hébergement **standard** · contrat de données `54dbe54363`
 
-Cahier de tests `2c32dcb7db` : **non validé par un testeur**
+Cahier de tests `2f85385e92` : **non validé par un testeur**
 
 ## Ce que nous vous garantissons
 
@@ -15,7 +15,7 @@ Cahier de tests `2c32dcb7db` : **non validé par un testeur**
 | EX-03 | Une pièce immobilisée par le Gréeur n'est jamais proposée pour un cours. | 2/2 scénarios | ✅ respectée |
 | EX-04 | Si l'IA ne répond pas ou répond n'importe quoi, rien n'est réservé et l'équipe reprend la main. | IA-GARDE · 4/4 scénarios | ✅ respectée |
 | EX-05 | Seules des données conformes au format convenu sont écrites dans les fichiers de l'école. | CONTRAT · GARDE-ECRITURE · ECRITURE-PROPRIETAIRE · 3/3 scénarios | ✅ respectée |
-| EX-06 | Chaque écriture automatique est traçable : quoi, quand, quelle version des règles, quelle validation. | JOURNAL · 2/2 scénarios | ✅ respectée |
+| EX-06 | Chaque écriture automatique est traçable : quoi, quand, quelle version des règles, quelle validation. | JOURNAL · 4/4 scénarios | ✅ respectée |
 | EX-07 | Les données personnelles des vacanciers sont limitées au nécessaire et purgées passé leur durée de conservation. | PERSO · PURGE · 2/2 scénarios | ⚠️ avec réserves |
 | EX-08 | Les données ne partent que vers les services déclarés, aucun secret n'est stocké dans le code. | SORTIES · SECRETS · IA-ADAPTATEUR | ⚠️ avec réserves |
 | EX-09 | Durées de conservation validées par l'école ; contrat de sous-traitance (RGPD) signé. | manuel : Validation écrite de l'école + contrat signé, référencés dans validations.json | 🕓 contrôle manuel à faire |
@@ -45,7 +45,7 @@ Cahier de tests `2c32dcb7db` : **non validé par un testeur**
 ## Constats
 
 **VALIDATION-TESTEUR**
-- ⚠️ Cahier de tests 2c32dcb7db pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
+- ⚠️ Cahier de tests 2f85385e92 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 
 **CONTRAT**
 - matos/Parc : 18 lignes de démo validées
@@ -88,7 +88,7 @@ Cahier de tests `2c32dcb7db` : **non validé par un testeur**
 - docs.google.com : Google Sheets du client (bases)
 
 **SECRETS**
-- 48 fichiers du repo scannés
+- 49 fichiers du repo scannés
 
 **PURGE**
 - ⚠️ Utilisations (client) : purge automatique impossible (pas de clé unique) — purge manuelle à prévoir
@@ -97,13 +97,13 @@ Cahier de tests `2c32dcb7db` : **non validé par un testeur**
 - Réservations : purge automatique (client 1095 j, contact 1095 j, participants 30 j)
 
 **SCENARIOS**
-- 17 scénarios dans 1 fichier(s), 17 réussis
+- 19 scénarios dans 1 fichier(s), 19 réussis
 
 ## Avant la mise en production
 
 Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci bloquant :
 
-- [ ] Cahier de tests 2c32dcb7db pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
+- [ ] Cahier de tests 2f85385e92 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 - [ ] matos/Utilisations.client : copie de reservations.Réservations.client — minimisation : le lien par clé suffit, colonne à supprimer
 - [ ] cdnjs.cloudflare.com : autorisé en démo seulement — librairie Excel des pages de démo — à embarquer avant la prod
 - [ ] claude.ai : autorisé en démo seulement — pages de démo hébergées en artefact (window.claude) — remplacées par l'hébergement du client en prod
@@ -122,9 +122,9 @@ Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci blo
 
 | Workflow | Version |
 |---|---|
-| Accueil — Après le cours | `190335a817` |
-| Accueil — Demande de réservation | `96d238d981` |
-| Gouvernance — Journal des erreurs | `59bc475e2c` |
-| Gouvernance — Purge des données personnelles | `757687dd80` |
-| Gréeur — Brief matos du lundi | `3bd9402118` |
-| Gréeur — Signalement d'un dégât | `eae9e7b28c` |
+| Accueil — Après le cours | `4edbf296df` |
+| Accueil — Demande de réservation | `7fe0ac54bc` |
+| Gouvernance — Journal des erreurs | `a908b2ef3a` |
+| Gouvernance — Purge des données personnelles | `0f1a224471` |
+| Gréeur — Brief matos du lundi | `7f72705c53` |
+| Gréeur — Signalement d'un dégât | `789494c7bd` |

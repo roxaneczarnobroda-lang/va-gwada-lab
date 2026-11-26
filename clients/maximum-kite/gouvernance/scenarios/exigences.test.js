@@ -122,17 +122,20 @@ test('EX-05', 'La Garde refuse un horodatage mal formé et un nombre de particip
 });
 
 // ------------------------------------------------------------------ EX-06 : traçabilité
+const JOURNAL = CONTRAT.gouvernance.Journal;
+const ecrireJournal = (journal, ecrites) => executer(WF_DEGAT, 'Journal — Ajouter au carnet', { input: journal, refs: { 'Ajouter au carnet': ecrites } })[0];
+
 test('EX-06', 'Chaque écriture produit une ligne de Journal : version, validation, clés, sans donnée perso', () => {
-  const j = executer(WF_DEGAT, 'Journal — Ajouter au carnet', { input: [{ id: 'K-02' }, { id: 'K-02' }, { id: 'W-01' }] })[0];
+  const j = ecrireJournal([], [{ id: 'K-02' }, { id: 'K-02' }, { id: 'W-01' }]);
   egal(j.operation, 'ajout'); egal(j.nb_lignes, 3); egal(j.cles, 'K-02, W-01'); egal(j.statut, 'ok');
   vrai(/^[0-9a-f]{10}$/.test(j.version), 'version absente'); vrai(j.validation.startsWith('humaine'), j.validation);
   egal(j.ia_modele, GOUV_IA_ATTENDU.modele);
 });
 
 test('EX-06', "Le Journal des erreurs masque les valeurs citées dans le message d'erreur", () => {
-  const j = executer('Gouvernance — Journal des erreurs', 'Ligne Journal erreur', {
-    input: [{ execution: { id: '42', lastNodeExecuted: 'Garde — Ajouter aux Demandes', error: { message: 'contact : « @lena.privee » hors liste' } }, workflow: { name: WF_DEMANDE } }],
-  })[0];
+  const j = executer('Gouvernance — Journal des erreurs', 'Ligne Journal erreur', { input: [], refs: {
+    "Erreur d'un workflow": [{ execution: { id: '42', lastNodeExecuted: 'Garde — Ajouter aux Demandes', error: { message: 'contact : « @lena.privee » hors liste' } }, workflow: { name: WF_DEMANDE } }],
+  } })[0];
   egal(j.statut, 'erreur'); vrai(!j.controle.includes('lena'), 'donnée perso dans le Journal : ' + j.controle);
 });
 
@@ -149,4 +152,23 @@ test('EX-07', 'Réservations : le poids des participants est purgé à 30 jours,
   const r = { resa: 'R-1', date: iso(-45), client: 'Ana', contact: '@ana', participants: 'Ana 55 kg' };
   const out = executer(WF_PURGE, 'À purger — Réservations', { input: [r] });
   egal(out, [{ resa: 'R-1', participants: '[purgé]' }]);
+});
+
+test('EX-06', 'Journal chaîné : chaque ligne porte l\'empreinte de la précédente, la chaîne se vérifie', () => {
+  const journal = [];
+  for (const id of ['K-01', 'K-02', 'W-01']) journal.push(ecrireJournal(journal, [{ id }]));
+  egal(journal[0].precedent, 'GENESE');
+  egal(journal[1].precedent, journal[0].empreinte);
+  vrai(verifierChaine(JOURNAL, journal).ok, 'la chaîne intacte doit être valide');
+});
+
+test('EX-06', 'Une ligne de Journal modifiée, supprimée ou insérée à la main est détectée', () => {
+  const journal = [];
+  for (const id of ['K-01', 'K-02', 'W-01', 'B-01']) journal.push(ecrireJournal(journal, [{ id }]));
+  const modifie = journal.map((l, i) => i === 1 ? { ...l, validation: 'non requise' } : l);
+  egal(verifierChaine(JOURNAL, modifie).ruptures.map(r => r.ligne), [3]);
+  const supprime = journal.filter((_, i) => i !== 2);
+  vrai(!verifierChaine(JOURNAL, supprime).ok, 'suppression non détectée');
+  const insere = [...journal.slice(0, 2), { ...journal[1], execution: 'faux' }, ...journal.slice(2)];
+  vrai(!verifierChaine(JOURNAL, insere).ok, 'insertion non détectée');
 });

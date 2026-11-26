@@ -214,7 +214,8 @@ for p, wf in WFS.items():
     by, succ, pred = graphe(wf)
     nom = f"{rel(p)}"
     if agent == "gouvernance" and any(n["type"] == "n8n-nodes-base.errorTrigger" for n in wf["nodes"]):
-        erreurs_wf = any(cible(w) == (J_BASE, J_TAB) for w in ecritures(wf))
+        erreurs_wf = any(cible(w) == (J_BASE, J_TAB) for w in ecritures(wf)) and any(
+            "chainer(" in n["parameters"].get("jsCode", "").replace(GARDE_JS, "") for n in wf["nodes"])
     for w in ecritures(wf):
         base, tab = cible(w)
         if base is None:
@@ -241,8 +242,12 @@ for p, wf in WFS.items():
         if est_journal:
             journalises.add(nom)
             continue
-        # Le journal : un node Journal qui écrit dans l'onglet Journal
-        js_j = [by[s] for s in succ[w["name"]] if "garderLot(" in by[s]["parameters"].get("jsCode", "")]
+        # Le journal : Lire Journal → node Journal (chaîné) → écriture dans l'onglet Journal
+        lect = [s for s in succ[w["name"]] if by[s]["type"] == "n8n-nodes-base.googleSheets"
+                and by[s]["parameters"].get("operation") in (None, "read") and cible(by[s]) == (J_BASE, J_TAB)]
+        js_j = [by[s] for r in lect for s in succ[r] if "garderLot(" in by[s]["parameters"].get("jsCode", "")]
+        if js_j and "chainer(" not in js_j[0]["parameters"]["jsCode"].replace(GARDE_JS, ""):
+            bloque("JOURNAL", f"{nom} « {w['name']} » : ligne de Journal non chaînée (pas de preuve d'intégrité)")
         trace = [t for j in js_j for t in succ[j["name"]] if by[t]["type"] == "n8n-nodes-base.googleSheets" and cible(by[t]) == (J_BASE, J_TAB)]
         if not trace:
             bloque("JOURNAL", f"{nom} « {w['name']} » : écriture non tracée dans le Journal")
