@@ -9,7 +9,7 @@ La gouvernance n'est pas une doc à part : elle est **dans le code généré**, 
 | `data/contrat.json` | **Contrat de données** : onglets, colonnes, types, listes, formats, qui écrit, données perso (finalité, conservation) | nous, validé avec le client |
 | `gouvernance/gouvernance.json` | **Manifeste** : niveau (demo/prod), hébergement (standard/souverain), IA, sorties autorisées, actions à risque, **exigences du client** | nous, à partir du besoin client |
 | `gouvernance/scenarios/*.test.js` | **Scénarios** : une exigence → des tests qui exécutent le vrai code des nodes | nous |
-| `gouvernance/validations.json` | Signatures des contrôles manuels (qui, quand, preuve) | nous + le client |
+| `gouvernance/validations.json` | Signature du **cahier de tests** par le testeur, et des contrôles manuels (qui, quand, preuve) | le testeur + le client |
 
 ## Ce que le build ajoute tout seul
 
@@ -25,6 +25,7 @@ La gouvernance n'est pas une doc à part : elle est **dans le code généré**, 
 
 | Gate | Bloque si… |
 |---|---|
+| VALIDATION-TESTEUR | le cahier de tests (exigences + scénarios + contrat) n'est pas signé, a été signé par son auteur, ou a changé depuis la signature |
 | CONTRAT | une colonne n'est pas typée ou classée, les données de démo ou les Excel ne respectent pas le contrat, une clé étrangère est cassée |
 | PERSO | une donnée perso n'a ni finalité ni durée, une donnée sensible apparaît, le Journal contient du perso |
 | ECRITURE-PROPRIETAIRE | un agent écrit un onglet qui n'est pas le sien, ou un fichier non déclaré |
@@ -47,9 +48,14 @@ Le résultat est écrit dans `gouvernance/rapport-qa.md` : c'est le document à 
 1. **Besoin → exigences.** Après le diag, écrire les promesses dans `exigences` du manifeste, en mots du client (« aucune réponse ne part sans relecture »). Une exigence = au moins un contrôle automatique ou un contrôle manuel.
 2. **Exigences → scénarios.** Pour chaque exigence vérifiable par le code, écrire un test dans `scenarios/` qui joue le cas réel, y compris quand l'IA répond mal ou pas du tout.
 3. **Données → contrat.** Chaque colonne : type, liste, données perso, finalité, durée (à faire valider par le client).
-4. **Build.** `python3 tools/build.py <client>` : la QA tourne, le rapport se met à jour.
-5. **Avant la mise en prod.** Passer `niveau` à `prod`. Traiter tout ce qui bloque, faire signer les contrôles manuels dans `validations.json`, puis remettre le rapport au client.
+4. **Validation par le testeur.** Celui qui n'a pas rédigé le cahier de tests le relit (chaque exigence du cahier des charges a-t-elle ses contrôles ? chaque scénario teste-t-il vraiment ce qu'il dit ?), puis signe : `python3 tools/qa.py <client> --signer "Prénom"`, et commite la signature dans une PR relue. La signature porte sur une empreinte : modifier une exigence, un scénario ou le contrat l'annule. En test c'est un avertissement, en prod c'est bloquant.
+5. **Build.** `python3 tools/build.py <client>` : la QA tourne, le rapport se met à jour.
+6. **Avant la mise en prod.** Passer `niveau` à `prod`. Traiter tout ce qui bloque, faire signer les contrôles manuels dans `validations.json`, puis remettre le rapport au client.
 
 ## Ajouter un client
 
 Copier `data/contrat.json`, `gouvernance/` (sans `n8n/` ni `rapport-qa.md`, qui sont générés) et adapter. Ajouter le client à la matrice de `.github/workflows/qa.yml`.
+
+## Limite à connaître
+
+`--signer` ne prouve pas l'identité : n'importe qui peut taper un prénom. La vraie garantie vient de GitHub. La signature doit arriver dans une pull request **ouverte et commitée par le testeur**, relue par l'autre. Pour rendre ça obligatoire : un fichier `CODEOWNERS` sur `clients/*/gouvernance/` et une protection de `main` qui exige une relecture (réglage du repo, par l'admin).

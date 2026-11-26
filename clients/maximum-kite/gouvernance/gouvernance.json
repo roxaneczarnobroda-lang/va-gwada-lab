@@ -68,6 +68,8 @@
      "manuel": "Liste des accès revue + procédure de sortie testée"},
     {"id": "EX-11", "besoin": "Une erreur d'exécution est journalisée dans l'onglet Journal, visible par l'équipe.",
      "controles": ["JOURNAL-ERREURS"],
-     "manuel": "Dans n8n, chaque workflow a « Gouvernance — Journal des erreurs » comme Error workflow (Settings)"}
+     "manuel": "Dans n8n, chaque workflow a « Gouvernance — Journal des erreurs » comme Error workflow (Settings)"},
+    {"id": "EX-12", "besoin": "L'historique d'exécutions de n8n ne conserve pas les données des vacanciers au-delà du nécessaire.",
+     "manuel": "Instance n8n réglée pour ne garder que les exécutions en erreur, avec une durée de rétention courte (variables EXECUTIONS_DATA_*) — à vérifier sur la version installée"}
   ]
 }

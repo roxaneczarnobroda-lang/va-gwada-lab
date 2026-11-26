@@ -4,6 +4,8 @@
 
 **⚠️ QA passée avec réserves** · niveau **demo** · hébergement **standard** · contrat de données `bfd7f8d72f`
 
+Cahier de tests `a853418694` : **non validé par un testeur**
+
 ## Ce que nous vous garantissons
 
 | | Exigence | Comment c'est vérifié | Résultat |
@@ -19,11 +21,13 @@
 | EX-09 | Durées de conservation validées par l'école ; contrat de sous-traitance (RGPD) signé. | manuel : Validation écrite de l'école + contrat signé, référencés dans validations.json | 🕓 contrôle manuel à faire |
 | EX-10 | Les accès (Google, n8n, IA) sont nominatifs et retirables en fin de contrat ; l'appli Google est publiée (plus de mode Testing). | manuel : Liste des accès revue + procédure de sortie testée | 🕓 contrôle manuel à faire |
 | EX-11 | Une erreur d'exécution est journalisée dans l'onglet Journal, visible par l'équipe. | JOURNAL-ERREURS · manuel : Dans n8n, chaque workflow a « Gouvernance — Journal des erreurs » comme Error workflow (Settings) | 🕓 contrôle manuel à faire |
+| EX-12 | L'historique d'exécutions de n8n ne conserve pas les données des vacanciers au-delà du nécessaire. | manuel : Instance n8n réglée pour ne garder que les exécutions en erreur, avec une durée de rétention courte (variables EXECUTIONS_DATA_*) — à vérifier sur la version installée | 🕓 contrôle manuel à faire |
 
 ## QA gates
 
 | Gate | Ce qui est vérifié | Résultat |
 |---|---|---|
+| VALIDATION-TESTEUR | Le cahier de tests (exigences, scénarios, contrat) est validé par un testeur indépendant et n'a pas changé depuis | ⚠️ 1 constat(s) |
 | CONTRAT | Contrat de données complet ; données de démo et Excel générés conformes (même validateur que n8n) | ✅ |
 | PERSO | Chaque donnée personnelle a une finalité et une durée de conservation ; aucune dans le Journal | ⚠️ 1 constat(s) |
 | ECRITURE-PROPRIETAIRE | Chaque onglet n'est écrit que par l'agent déclaré, dans les fichiers déclarés | ✅ |
@@ -39,6 +43,9 @@
 | SCENARIOS | Scénarios de test issus des exigences du client : tous passent | ✅ |
 
 ## Constats
+
+**VALIDATION-TESTEUR**
+- ⚠️ Cahier de tests a853418694 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 
 **CONTRAT**
 - matos/Parc : 18 lignes de démo validées
@@ -96,6 +103,7 @@
 
 Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci bloquant :
 
+- [ ] Cahier de tests a853418694 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 - [ ] matos/Utilisations.client : copie de reservations.Réservations.client — minimisation : le lien par clé suffit, colonne à supprimer
 - [ ] cdnjs.cloudflare.com : autorisé en démo seulement — librairie Excel des pages de démo — à embarquer avant la prod
 - [ ] claude.ai : autorisé en démo seulement — pages de démo hébergées en artefact (window.claude) — remplacées par l'hébergement du client en prod
@@ -108,6 +116,7 @@ Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci blo
 - [ ] EX-09 : Validation écrite de l'école + contrat signé, référencés dans validations.json
 - [ ] EX-10 : Liste des accès revue + procédure de sortie testée
 - [ ] EX-11 : Dans n8n, chaque workflow a « Gouvernance — Journal des erreurs » comme Error workflow (Settings)
+- [ ] EX-12 : Instance n8n réglée pour ne garder que les exécutions en erreur, avec une durée de rétention courte (variables EXECUTIONS_DATA_*) — à vérifier sur la version installée
 
 ## Versions livrées
 
