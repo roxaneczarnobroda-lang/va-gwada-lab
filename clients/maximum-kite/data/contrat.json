@@ -125,7 +125,12 @@
             "texte": {"type": "texte", "obligatoire": true, "max": 3000, "perso": "perso", "finalite": "preuve d'envoi", "conservation_jours": 365},
             "statut": {"type": "texte", "obligatoire": true, "valeurs": ["Envoi simulé", "À envoyer (canal pas encore branché)", "Envoyé"], "perso": "non"}
           }
-        },
+        }
+      }
+    },
+    "gouvernance": {
+      "description": "Base GOUVERNANCE — traçabilité des automatisations, séparée des données métier (droits d'accès et conservation à part).",
+      "onglets": {
         "Journal": {
           "description": "Traçabilité : une ligne par écriture automatique (quoi, quand, quelle version, quelle validation). Jamais de donnée personnelle ici.",
           "cle": "execution", "cle_unique": false, "ecrit_par": ["gouvernance"],

@@ -434,7 +434,7 @@ for local in ([False, True] if CREDS else [False]):
         out = dossier / (fname + (".local.json" if local else ".json"))
         out.write_text(json.dumps(wf, ensure_ascii=False, indent=2), encoding="utf-8")
 
-print(f"OK {CLIENT} : 2 pages, 2 bases Excel (dates à partir du {TODAY}), {len(VERSIONS)} workflows n8n gouvernés"
+print(f"OK {CLIENT} : 2 pages, {len(SCHEMA)} bases Excel (dates à partir du {TODAY}), {len(VERSIONS)} workflows n8n gouvernés"
       + (" (+ versions .local branchées)" if CREDS else ""))
 
 # ---------------------------------------------------------------- 5. QA gates

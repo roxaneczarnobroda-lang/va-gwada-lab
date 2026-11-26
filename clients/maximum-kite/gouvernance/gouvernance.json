@@ -15,7 +15,7 @@
     "_souverain": "Pour l'option souveraine : remplacer endpoint/modèle par ceux de l'environnement IA du client. Rien d'autre à toucher : tout le code passe par cet adaptateur."
   },
 
-  "journal": {"base": "reservations", "onglet": "Journal"},
+  "journal": {"base": "gouvernance", "onglet": "Journal"},
 
   "sorties": {
     "standard": {

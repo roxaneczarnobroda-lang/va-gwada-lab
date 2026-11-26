@@ -295,7 +295,7 @@ $('hyp-form').addEventListener('input', e => {
 });
 
 /* --- Google Sheet (connecteur Google Sheets de la personne qui ouvre la page) --- */
-const GS = 'Google Sheets', SHEET_DEFAULT = ({"matos": "1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8", "reservations": "1NQd9vlkSQpAwCGGq_kJGLQJjsmfJk7v-0Fs65onZCFI"}).matos;
+const GS = 'Google Sheets', SHEET_DEFAULT = ({"matos": "1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8", "reservations": "1NQd9vlkSQpAwCGGq_kJGLQJjsmfJk7v-0Fs65onZCFI", "gouvernance": "1iSRviJRFMgIqijgpHm_KXwGJwRv2bKvLaDr-RxHaUgg"}).matos;
 let mcp = null, src = 'demo', sheetId = SHEET_DEFAULT;
 try { sheetId = localStorage.getItem('mk-sheet-matos') || SHEET_DEFAULT; } catch {}
 $('sheet-id').value = sheetId;

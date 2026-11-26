@@ -9,7 +9,7 @@ Prospect. Trois agents proposés dans le pitch : **Le Gréeur** (matos), **L'Acc
 
 Tout se gère depuis les pages : pas d'email ni de WhatsApp à suivre. Instagram et WhatsApp ne sont **pas branchés** (compte Meta Business nécessaire) : l'Accueil tourne sur des messages en dur et marque les envois « simulés ». On met ces blocs en place une fois le projet gagné.
 
-## Les données : deux bases
+## Les données : deux bases métier + une base de gouvernance
 
 Deux Google Sheets dans le dossier partagé VA Gwada (IDs dans [sheets.json](sheets.json)), schéma dans [data/README.md](data/README.md) :
 - **Matos** : Parc, Dégâts, Utilisations, Brief. Le Gréeur l'écrit, l'Accueil la lit et y ajoute les utilisations.
@@ -35,7 +35,7 @@ Ouvrir le lien de la page sur téléphone ou tablette, « Revenir aux données d
 
 Les 4 workflows sont déjà importés dans le n8n de Roxane (Gréeur : signalement, brief du lundi ; Accueil : demande de réservation, après le cours), branchés sur les deux Google Sheets.
 
-**Depuis la gouvernance by design** (voir [docs/gouvernance.md](../../docs/gouvernance.md)) : ajouter un onglet **Journal** dans la Google Sheet « Réservations » (en-têtes : ceux de `data/generes/reservations.xlsx`), réimporter les 4 workflows, importer les 2 workflows de `gouvernance/n8n/` (Purge — ne pas l'activer en démo ; Journal des erreurs), puis choisir « Gouvernance — Journal des erreurs » comme *Error workflow* dans les Settings de chaque workflow. Rapport QA : [gouvernance/rapport-qa.md](gouvernance/rapport-qa.md).
+**Depuis la gouvernance by design** (voir [docs/gouvernance.md](../../docs/gouvernance.md)) : le Journal vit dans une 3e Google Sheet, **« Maximum Kite — Gouvernance »** (onglet Journal, en-têtes de `data/generes/gouvernance.xlsx`) : la traçabilité ne se mélange pas aux données métier et a ses propres droits d'accès, réimporter les 4 workflows, importer les 2 workflows de `gouvernance/n8n/` (Purge — ne pas l'activer en démo ; Journal des erreurs), puis choisir « Gouvernance — Journal des erreurs » comme *Error workflow* dans les Settings de chaque workflow. Rapport QA : [gouvernance/rapport-qa.md](gouvernance/rapport-qa.md).
 
 Pour une autre instance (Saskia) :
 1. `npx n8n`, puis importer les `*.json` de `greeur/n8n/` et `accueil/n8n/` (menu ⋯ → Import from File).

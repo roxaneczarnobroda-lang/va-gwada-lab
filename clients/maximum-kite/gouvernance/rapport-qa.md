@@ -2,9 +2,9 @@
 
 > Généré par `tools/qa.py` à chaque build. Ne pas modifier à la main.
 
-**⚠️ QA passée avec réserves** · niveau **demo** · hébergement **standard** · contrat de données `bfd7f8d72f`
+**⚠️ QA passée avec réserves** · niveau **demo** · hébergement **standard** · contrat de données `e1cd85ee31`
 
-Cahier de tests `a853418694` : **non validé par un testeur**
+Cahier de tests `2c32dcb7db` : **non validé par un testeur**
 
 ## Ce que nous vous garantissons
 
@@ -45,7 +45,7 @@ Cahier de tests `a853418694` : **non validé par un testeur**
 ## Constats
 
 **VALIDATION-TESTEUR**
-- ⚠️ Cahier de tests a853418694 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
+- ⚠️ Cahier de tests 2c32dcb7db pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 
 **CONTRAT**
 - matos/Parc : 18 lignes de démo validées
@@ -88,7 +88,7 @@ Cahier de tests `a853418694` : **non validé par un testeur**
 - docs.google.com : Google Sheets du client (bases)
 
 **SECRETS**
-- 47 fichiers du repo scannés
+- 48 fichiers du repo scannés
 
 **PURGE**
 - ⚠️ Utilisations (client) : purge automatique impossible (pas de clé unique) — purge manuelle à prévoir
@@ -103,7 +103,7 @@ Cahier de tests `a853418694` : **non validé par un testeur**
 
 Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci bloquant :
 
-- [ ] Cahier de tests a853418694 pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
+- [ ] Cahier de tests 2c32dcb7db pas encore validé par un testeur (python3 tools/qa.py maximum-kite --signer "Prénom")
 - [ ] matos/Utilisations.client : copie de reservations.Réservations.client — minimisation : le lien par clé suffit, colonne à supprimer
 - [ ] cdnjs.cloudflare.com : autorisé en démo seulement — librairie Excel des pages de démo — à embarquer avant la prod
 - [ ] claude.ai : autorisé en démo seulement — pages de démo hébergées en artefact (window.claude) — remplacées par l'hébergement du client en prod
@@ -122,9 +122,9 @@ Passer `niveau` à `prod` dans `gouvernance/gouvernance.json` rend tout ceci blo
 
 | Workflow | Version |
 |---|---|
-| Accueil — Après le cours | `17ed165cfe` |
-| Accueil — Demande de réservation | `eb21c9b29c` |
-| Gouvernance — Journal des erreurs | `bc46eb39df` |
-| Gouvernance — Purge des données personnelles | `f090efcf64` |
-| Gréeur — Brief matos du lundi | `30dd641b15` |
-| Gréeur — Signalement d'un dégât | `1e934cecc6` |
+| Accueil — Après le cours | `190335a817` |
+| Accueil — Demande de réservation | `96d238d981` |
+| Gouvernance — Journal des erreurs | `59bc475e2c` |
+| Gouvernance — Purge des données personnelles | `757687dd80` |
+| Gréeur — Brief matos du lundi | `3bd9402118` |
+| Gréeur — Signalement d'un dégât | `eae9e7b28c` |

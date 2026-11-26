@@ -761,7 +761,7 @@ const showTab = v => {
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) showTab(b.dataset.v); });
 
 /* ---------- Google Sheet (connecteur Google Sheets de la personne qui ouvre la page) ---------- */
-const GS = 'Google Sheets', SHEETS = {"matos": "1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8", "reservations": "1NQd9vlkSQpAwCGGq_kJGLQJjsmfJk7v-0Fs65onZCFI"};
+const GS = 'Google Sheets', SHEETS = {"matos": "1s32iebX2wKko-Ax9UkXIcGONCsv6nh8iqgGmIet5xU8", "reservations": "1NQd9vlkSQpAwCGGq_kJGLQJjsmfJk7v-0Fs65onZCFI", "gouvernance": "1iSRviJRFMgIqijgpHm_KXwGJwRv2bKvLaDr-RxHaUgg"};
 const RESA_COLS = ['resa', 'date', 'creneau', 'offre', 'client', 'canal', 'contact', 'langue', 'nb', 'participants', 'moniteur', 'matos', 'prix_total', 'acompte', 'statut', 'code'];
 const UTIL_COLS = ['date', 'resa', 'id', 'heures', 'client'];
 const MSG_COLS = ['date', 'resa', 'canal', 'contact', 'type', 'texte', 'statut'];
