@@ -10,10 +10,8 @@ const degats = rows('Lire Dégâts').filter(r => r.id);
 const resas = rows('Lire Réservations').filter(r => r.resa);
 const vent = rows('Lire Vent').filter(r => r.date);
 
-// Le modèle peut renvoyer un bloc « thinking » avant le texte : on ne garde que les blocs texte.
-const raw = ($input.first().json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-let j = null;
-try { j = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch (e) { j = null; }
+// jsonIA (tools/garde.js) : null si la réponse est absente ou illisible → on ne réserve rien.
+const j = jsonIA($input.first().json);
 const req = aNormReq(j, demande, R, today);
 if (!j) req.offre = 'autre'; // lecture impossible : on ne réserve rien, l'équipe reprend la main
 
@@ -28,6 +26,6 @@ const proposition = !j ? 'Lecture IA impossible : à traiter à la main' : !e ? 
     + (e.notes.length ? ` · à noter : ${e.notes.join(' ; ')}` : '');
 
 return [{ json: {
-  body: { model: 'claude-haiku-5-5', max_tokens: 1500, thinking: { type: 'disabled' }, messages: [{ role: 'user', content: aPromptReponse(F, demande.message) }] },
+  body: corpsIA(aPromptReponse(F, demande.message)),
   _demande: demande, _req: req, _proposition: proposition, _lecture_ok: !!j,
 } }];

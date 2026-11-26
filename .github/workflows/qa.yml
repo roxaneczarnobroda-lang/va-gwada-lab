@@ -1,0 +1,27 @@
+name: QA gates
+# Bloque la fusion d'une pull request si une promesse faite à un client n'est plus tenue.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client: [maximum-kite]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install openpyxl
+      - name: Build + QA gates
+        run: python3 tools/build.py ${{ matrix.client }}
+      - name: Les fichiers générés commités sont à jour
+        run: |
+          git diff --exit-code -- 'clients/${{ matrix.client }}/**/*.json' 'clients/${{ matrix.client }}/**/*.html' \
+            'clients/${{ matrix.client }}/gouvernance/rapport-qa.md' \
+            || (echo "::error::Relancer python3 tools/build.py ${{ matrix.client }} et commiter les fichiers générés"; exit 1)

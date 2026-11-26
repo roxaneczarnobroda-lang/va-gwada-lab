@@ -35,6 +35,8 @@ Ouvrir le lien de la page sur téléphone ou tablette, « Revenir aux données d
 
 Les 4 workflows sont déjà importés dans le n8n de Roxane (Gréeur : signalement, brief du lundi ; Accueil : demande de réservation, après le cours), branchés sur les deux Google Sheets.
 
+**Depuis la gouvernance by design** (voir [docs/gouvernance.md](../../docs/gouvernance.md)) : ajouter un onglet **Journal** dans la Google Sheet « Réservations » (en-têtes : ceux de `data/generes/reservations.xlsx`), réimporter les 4 workflows, importer les 2 workflows de `gouvernance/n8n/` (Purge — ne pas l'activer en démo ; Journal des erreurs), puis choisir « Gouvernance — Journal des erreurs » comme *Error workflow* dans les Settings de chaque workflow. Rapport QA : [gouvernance/rapport-qa.md](gouvernance/rapport-qa.md).
+
 Pour une autre instance (Saskia) :
 1. `npx n8n`, puis importer les `*.json` de `greeur/n8n/` et `accueil/n8n/` (menu ⋯ → Import from File).
 2. Choisir les credentials Google Sheets et Anthropic sur les nodes. Ou : créer `credentials.local.json` à la racine du client (format en tête de `tools/build.py`), relancer le build et importer les `*.local.json`.
