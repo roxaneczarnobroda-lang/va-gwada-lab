@@ -5,11 +5,8 @@ const today = new Date(); today.setHours(12, 0, 0, 0);
 const form = $('Formulaire dégât').first().json;
 const parc = $('Lire Parc').all().map(i => i.json).filter(r => r.id);
 const degats = $('Lire Dégâts').all().map(i => i.json).filter(r => r.id);
-// Le modèle peut renvoyer un bloc « thinking » avant le texte : on ne garde que les blocs texte.
-const raw = ($input.first().json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-
-let j = {};
-try { j = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch (e) { j = {}; }
+// jsonIA (tools/garde.js) : texte seul, JSON vérifié, null si illisible → repli : pièce « A_VERIFIER ».
+const j = jsonIA($input.first().json) || {};
 const piece = parc.find(p => p.id === j.id);
 const type = j.type || 'Autre';
 const est = estimation(type, degats);

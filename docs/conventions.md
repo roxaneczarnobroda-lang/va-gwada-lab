@@ -9,12 +9,19 @@
 - **Un seul schéma partout** : mêmes onglets et mêmes noms de colonnes dans le JSON, l'Excel et la Google Sheet. Colonnes en minuscules sans accent (`date_achat`, `prix_total`), plus simples dans n8n.
 - Les IDs des Google Sheets d'un client sont dans `clients/<client>/sheets.json`, nulle part ailleurs.
 
+- **Une colonne n'existe que dans `data/contrat.json`** : type, liste de valeurs, donnée perso ou non (finalité + durée de conservation si oui). Les Excel, les listes déroulantes et les Gardes n8n en sont générés.
+
+## Gouvernance
+- Détail dans [gouvernance.md](gouvernance.md). En bref : on ne contourne jamais `sheet_write(..., validation=…)`, on n'écrit jamais un modèle ou un endpoint IA dans le code (`corpsIA`), on lit toujours une réponse IA avec `jsonIA` / `texteIA`.
+- Chaque promesse au client = une exigence dans `gouvernance/gouvernance.json` + un scénario dans `gouvernance/scenarios/`.
+- Un domaine appelé par un workflow ou une page doit être déclaré dans `sorties` du manifeste.
+
 ## IA
 - L'IA **lit et reformule**. Elle ne calcule pas de prix, ne choisit pas un créneau et ne décide pas. Ce sont des règles écrites ou l'historique du client.
 - Toujours demander une réponse JSON et la vérifier côté code (ID existant, valeur dans une liste autorisée).
 - Toujours un repli à la main si l'IA ne répond pas.
 - Un message qui part sans relecture (ex. après le cours) est un modèle fixe, pas un texte généré.
-- Appels à l'API Anthropic depuis n8n : `thinking: { type: 'disabled' }` et lire seulement les blocs `text` de la réponse (le premier bloc peut être un bloc de réflexion vide).
+- Appels IA depuis n8n : `corpsIA(prompt)` (modèle du manifeste, `thinking` désactivé) et `jsonIA` / `texteIA` pour lire la réponse (blocs `text` seulement, le premier bloc peut être une réflexion vide).
 
 ## n8n (rappels issus de nos workflows)
 - Lancement en local : `npx n8n` → http://localhost:5678.
@@ -37,5 +44,5 @@
 - Avant de commencer : `git switch main && git pull`, puis `git switch -c <branche>`.
 - Pull request vers `main`, l'autre relit, puis **Squash and merge** (un commit propre par changement) et suppression de la branche.
 - Ne jamais empiler une branche sur une autre branche pas encore fusionnée : on fusionne d'abord.
-- Relancer `python3 tools/build.py` avant de committer (les fichiers générés font partie du commit).
+- Relancer `python3 tools/build.py` avant de committer (les fichiers générés font partie du commit). La CI refait le build et refuse la PR si une QA gate bloque ou si un fichier généré n'est pas à jour.
 - Messages de commit en français, à l'impératif : « Ajoute la saisie du vent par l'école ».

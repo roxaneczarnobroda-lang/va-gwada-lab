@@ -4,4 +4,4 @@
 const today = new Date(); today.setHours(12, 0, 0, 0);
 const f = $('Message reçu').first().json;
 const message = String(f['Message'] || '');
-return [{ json: { body: { model: 'claude-haiku-5-5', max_tokens: 1500, thinking: { type: 'disabled' }, messages: [{ role: 'user', content: aPromptLecture(R, today, message) }] } } }];
+return [{ json: { body: corpsIA(aPromptLecture(R, today, message)) } }];

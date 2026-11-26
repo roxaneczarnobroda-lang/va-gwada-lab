@@ -1,0 +1,6 @@
+{
+  "_note": "Signatures des contrôles MANUELS (exigences avec « manuel »). Une entrée = qui a vérifié, quand, et où est la preuve. En niveau prod, une exigence manuelle sans entrée bloque la QA.",
+  "EX-09": null,
+  "EX-10": null,
+  "EX-11": null
+}

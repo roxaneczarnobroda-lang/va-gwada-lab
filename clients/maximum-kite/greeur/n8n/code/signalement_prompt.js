@@ -22,4 +22,5 @@ Réponds UNIQUEMENT avec un objet JSON : {"id":"...","candidats":["..."],"type":
 
 MESSAGE DU MONITEUR : """${message}"""`;
 
-return [{ json: { body: { model: 'claude-haiku-5-5', max_tokens: 1500, thinking: { type: 'disabled' }, messages: [{ role: 'user', content: prompt }] } } }];
+// Modèle et endpoint : manifeste du client (gouvernance.json), via corpsIA de tools/garde.js.
+return [{ json: { body: corpsIA(prompt) } }];

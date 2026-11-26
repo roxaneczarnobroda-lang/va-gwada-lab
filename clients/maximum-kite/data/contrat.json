@@ -1,0 +1,152 @@
+{
+  "_note": "CONTRAT DE DONNÉES de Maximum Kite. Source unique : il génère les Excel (colonnes, listes déroulantes), il est injecté dans n8n (node « Garde » avant chaque écriture) et il est vérifié par tools/qa.py. On ne crée pas une colonne ailleurs qu'ici.",
+  "_types": "texte · entier · nombre · date (AAAA-MM-JJ) · horodatage (AAAA-MM-JJ HH:MM ou ISO) · oui_non",
+  "_perso": "non = aucune personne identifiable · perso = identifie ou décrit une personne (nom, pseudo, contact, message libre, poids) · sensible = donnée RGPD art. 9 (santé…) : interdite tant qu'une exigence client ne l'autorise pas",
+  "_conservation": "Durées PROPOSÉES par VA Gwada, à valider avec le client (exigence EX-09). Au-delà, le workflow de purge remplace les colonnes perso par « [purgé] ».",
+  "bases": {
+    "matos": {
+      "description": "Base MATOS — le parc de l'école, ses dégâts et ses utilisations.",
+      "onglets": {
+        "Parc": {
+          "description": "Une ligne par pièce de matos. Saisi par l'école.",
+          "cle": "id", "cle_unique": true, "ecrit_par": ["ecole"],
+          "colonnes": {
+            "id": {"type": "texte", "obligatoire": true, "format": "^[A-Z]{1,3}-\\d{2,3}$", "perso": "non"},
+            "categorie": {"type": "texte", "obligatoire": true, "valeurs_ref": "matos:hypotheses.duree_vie_ans.@cles", "perso": "non"},
+            "designation": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "date_achat": {"type": "date", "obligatoire": true, "perso": "non"},
+            "prix_achat": {"type": "nombre", "obligatoire": true, "min": 0, "perso": "non"}
+          }
+        },
+        "Dégâts": {
+          "description": "Une ligne par dégât signalé. id = une pièce du Parc.",
+          "cle": "id", "cle_unique": false, "ecrit_par": ["greeur"],
+          "colonnes": {
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "id": {"type": "texte", "obligatoire": true, "ref": "matos.Parc.id", "valeurs_extra": ["A_VERIFIER"], "perso": "non"},
+            "type": {"type": "texte", "obligatoire": true, "valeurs_ref": "matos:types_degat", "perso": "non"},
+            "description": {"type": "texte", "obligatoire": true, "max": 500, "perso": "non"},
+            "gravite": {"type": "texte", "obligatoire": true, "valeurs": ["Légère", "Moyenne", "Grave"], "perso": "non"},
+            "cout": {"type": "nombre", "obligatoire": false, "min": 0, "perso": "non"},
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["À réparer", "Chez le réparateur", "Réparé"], "perso": "non"},
+            "immobilise": {"type": "oui_non", "obligatoire": true, "perso": "non"}
+          }
+        },
+        "Utilisations": {
+          "description": "Une ligne par pièce sortie en cours. resa → base Réservations.",
+          "cle": "resa", "cle_unique": false, "ecrit_par": ["accueil"],
+          "colonnes": {
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "resa": {"type": "texte", "obligatoire": true, "ref": "reservations.Réservations.resa", "perso": "non"},
+            "id": {"type": "texte", "obligatoire": true, "ref": "matos.Parc.id", "perso": "non"},
+            "heures": {"type": "nombre", "obligatoire": true, "min": 0, "perso": "non"},
+            "client": {"type": "texte", "obligatoire": false, "perso": "perso", "finalite": "lisibilité du carnet matos", "conservation_jours": 365,
+                       "doublon_de": "reservations.Réservations.client"}
+          }
+        },
+        "Brief": {
+          "description": "Une ligne par brief du lundi (calculé par n8n).",
+          "cle": "date", "cle_unique": true, "ecrit_par": ["greeur"],
+          "colonnes": {
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "brief": {"type": "texte", "obligatoire": true, "max": 4000, "perso": "non"},
+            "ok": {"type": "entier", "obligatoire": true, "min": 0, "perso": "non"},
+            "surveiller": {"type": "entier", "obligatoire": true, "min": 0, "perso": "non"},
+            "remplacer": {"type": "entier", "obligatoire": true, "min": 0, "perso": "non"},
+            "immobilise": {"type": "entier", "obligatoire": true, "min": 0, "perso": "non"},
+            "budget_12_mois": {"type": "nombre", "obligatoire": true, "perso": "non"}
+          }
+        }
+      }
+    },
+    "reservations": {
+      "description": "Base RÉSERVATIONS — vent, demandes des vacanciers, cours, messages envoyés.",
+      "onglets": {
+        "Vent": {
+          "description": "Vent prévu par créneau (nœuds). Saisi par l'école ou une source météo (colonne source).",
+          "cle": "date", "cle_unique": true, "ecrit_par": ["ecole", "meteo"],
+          "colonnes": {
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "matin": {"type": "nombre", "obligatoire": false, "min": 0, "max": 80, "perso": "non"},
+            "midi": {"type": "nombre", "obligatoire": false, "min": 0, "max": 80, "perso": "non"},
+            "aprem": {"type": "nombre", "obligatoire": false, "min": 0, "max": 80, "perso": "non"},
+            "dir": {"type": "texte", "obligatoire": false, "perso": "non"},
+            "source": {"type": "texte", "obligatoire": false, "perso": "non"}
+          }
+        },
+        "Demandes": {
+          "description": "Un message reçu d'un vacancier, la réponse préparée et son statut. Rien ne part sans validation dans la page.",
+          "cle": "id", "cle_unique": true, "date_reference": "recu", "ecrit_par": ["accueil"],
+          "colonnes": {
+            "id": {"type": "texte", "obligatoire": true, "format": "^D-\\d+$", "perso": "non"},
+            "recu": {"type": "horodatage", "obligatoire": true, "perso": "non"},
+            "canal": {"type": "texte", "obligatoire": true, "valeurs": ["Instagram", "Email", "WhatsApp"], "perso": "non"},
+            "contact": {"type": "texte", "obligatoire": true, "perso": "perso", "finalite": "répondre à la demande", "conservation_jours": 180},
+            "langue": {"type": "texte", "obligatoire": false, "format": "^[a-z]{2}$", "perso": "non"},
+            "message": {"type": "texte", "obligatoire": true, "max": 3000, "perso": "perso", "finalite": "comprendre et traiter la demande", "conservation_jours": 180},
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["Nouveau", "Réponse prête", "Traité"], "perso": "non"},
+            "resume": {"type": "texte", "obligatoire": false, "max": 500, "perso": "perso", "finalite": "tri des demandes", "conservation_jours": 180},
+            "reponse": {"type": "texte", "obligatoire": false, "max": 3000, "perso": "perso", "finalite": "réponse à valider par l'équipe", "conservation_jours": 180},
+            "proposition": {"type": "texte", "obligatoire": false, "max": 1000, "perso": "non"}
+          }
+        },
+        "Réservations": {
+          "description": "Un cours. matos = id(s) de la base Matos.",
+          "cle": "resa", "cle_unique": true, "date_reference": "date", "ecrit_par": ["accueil"],
+          "colonnes": {
+            "resa": {"type": "texte", "obligatoire": true, "format": "^R-\\d+$", "perso": "non"},
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "creneau": {"type": "texte", "obligatoire": true, "valeurs_ref": "reservations:regles.creneaux.code", "perso": "non"},
+            "offre": {"type": "texte", "obligatoire": true, "valeurs_ref": "reservations:regles.offres.code", "perso": "non"},
+            "client": {"type": "texte", "obligatoire": true, "perso": "perso", "finalite": "exécution du cours", "conservation_jours": 1095},
+            "canal": {"type": "texte", "obligatoire": true, "valeurs": ["Instagram", "Email", "WhatsApp", "Téléphone", "Sur place"], "perso": "non"},
+            "contact": {"type": "texte", "obligatoire": true, "perso": "perso", "finalite": "exécution du cours et message d'après-cours", "conservation_jours": 1095},
+            "langue": {"type": "texte", "obligatoire": false, "format": "^[a-z]{2}$", "perso": "non"},
+            "nb": {"type": "entier", "obligatoire": true, "min": 1, "max": 6, "perso": "non"},
+            "participants": {"type": "texte", "obligatoire": true, "perso": "perso", "finalite": "choix de la taille du matériel (prénom, poids)", "conservation_jours": 30,
+                             "minimisation": "le poids ne sert qu'à préparer le matériel : purgé 30 jours après le cours"},
+            "moniteur": {"type": "texte", "obligatoire": false, "valeurs_ref": "reservations:regles.moniteurs", "perso": "non"},
+            "matos": {"type": "texte", "obligatoire": false, "perso": "non"},
+            "prix_total": {"type": "nombre", "obligatoire": true, "min": 0, "perso": "non"},
+            "acompte": {"type": "nombre", "obligatoire": false, "min": 0, "perso": "non"},
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["Proposé", "Confirmé", "Terminé", "Annulé"], "perso": "non"},
+            "code": {"type": "texte", "obligatoire": false, "perso": "non"}
+          }
+        },
+        "Messages": {
+          "description": "Tout ce qui a été envoyé (ou simulé) aux clients.",
+          "cle": "resa", "cle_unique": false, "ecrit_par": ["accueil"],
+          "colonnes": {
+            "date": {"type": "date", "obligatoire": true, "perso": "non"},
+            "resa": {"type": "texte", "obligatoire": true, "ref": "reservations.Réservations.resa", "perso": "non"},
+            "canal": {"type": "texte", "obligatoire": true, "valeurs": ["Instagram", "Email", "WhatsApp"], "perso": "non"},
+            "contact": {"type": "texte", "obligatoire": true, "perso": "perso", "finalite": "preuve d'envoi", "conservation_jours": 365},
+            "type": {"type": "texte", "obligatoire": true, "valeurs": ["Après le cours", "Réponse à une demande"], "perso": "non"},
+            "texte": {"type": "texte", "obligatoire": true, "max": 3000, "perso": "perso", "finalite": "preuve d'envoi", "conservation_jours": 365},
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["Envoi simulé", "À envoyer (canal pas encore branché)", "Envoyé"], "perso": "non"}
+          }
+        },
+        "Journal": {
+          "description": "Traçabilité : une ligne par écriture automatique (quoi, quand, quelle version, quelle validation). Jamais de donnée personnelle ici.",
+          "cle": "execution", "cle_unique": false, "ecrit_par": ["gouvernance"],
+          "colonnes": {
+            "horodatage": {"type": "horodatage", "obligatoire": true, "perso": "non"},
+            "execution": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "workflow": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "version": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "agent": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "base": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "onglet": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "operation": {"type": "texte", "obligatoire": true, "valeurs": ["ajout", "mise à jour", "purge", "erreur"], "perso": "non"},
+            "nb_lignes": {"type": "entier", "obligatoire": true, "min": 0, "perso": "non"},
+            "cles": {"type": "texte", "obligatoire": false, "max": 500, "perso": "non"},
+            "ia_modele": {"type": "texte", "obligatoire": false, "perso": "non"},
+            "controle": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "validation": {"type": "texte", "obligatoire": true, "perso": "non"},
+            "statut": {"type": "texte", "obligatoire": true, "valeurs": ["ok", "erreur"], "perso": "non"}
+          }
+        }
+      }
+    }
+  }
+}
